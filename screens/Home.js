@@ -32,10 +32,10 @@ export default function Home() {
         tabBarInactiveTintColor: "gray",
       })}
     >
-      <Tab.Screen name="Feed" component={Feed} />
-      <Tab.Screen name="Buscar" component={Buscar} />
-      <Tab.Screen name="Perfil" component={Perfil} />
-      <Tab.Screen name="Playlist" component={Playlist} />
+      <Tab.Screen name="Feed" component={Feed} options={{headerShown: false}}/>
+      <Tab.Screen name="Buscar" component={Buscar} options={{headerShown: false}}/>
+      <Tab.Screen name="Perfil" component={Perfil} options={{headerShown: false}}/>
+      <Tab.Screen name="Playlist" component={Playlist} options={{headerShown: false}}/>
     </Tab.Navigator>
   );
 }
