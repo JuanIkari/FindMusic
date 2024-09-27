@@ -13,7 +13,7 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Register" screenOptions={{headerTransparent: true, headerTintColor: "#fff"}}>
-        <Stack.Screen name="Register" component={Register} />
+        <Stack.Screen name="Register" component={Register} options={{headerShown: false}}/>
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen
           name="Home"
