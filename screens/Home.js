@@ -1,7 +1,9 @@
 import * as React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Icon from "react-native-vector-icons/Ionicons";
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import * as NavigationBar from "expo-navigation-bar";
+import { useSafeAreaInsets } from 'react-native-safe-area-context'; // Importamos safeAreaInsets
 
 import Feed from "./Feed";
 import Buscar from "./Buscar";
@@ -13,32 +15,35 @@ NavigationBar.setPositionAsync("absolute");
 NavigationBar.setBackgroundColorAsync("#ffffff01");
 
 export default function Home() {
+  const insets = useSafeAreaInsets();
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarStyle: {
           borderTopWidth: 0,
-          backgroundColor: 'transparent',
+          backgroundColor: '#00000099',
           position: 'absolute',
           left: 0,
           bottom: 0,
           right: 0,
           elevation: 0,
+          height: 65 + insets.bottom,
+          paddingBottom: 5 + insets.bottom,
+          paddingTop: 10,
         },
         tabBarIcon: ({ color, size }) => {
-          let iconName;
+          if (route.name === "Playlist") {
+            return <MaterialCommunityIcons name="playlist-music-outline" size={size} color={color} />;
+          } else {
+            const icons = {
+              Feed: "musical-notes-outline",
+              Buscar: "search-outline",
+              Perfil: "person-outline",
+            };
 
-          if (route.name === "Feed") {
-            iconName = "home-outline";
-          } else if (route.name === "Buscar") {
-            iconName = "search-outline";
-          } else if (route.name === "Perfil") {
-            iconName = "person-outline";
-          } else if (route.name === "Playlist") {
-            iconName = "musical-notes-outline";
+            return <Icon name={icons[route.name]} size={size} color={color} />;
           }
-
-          return <Icon name={iconName} size={size} color={color} />;
         },
         tabBarActiveTintColor: "purple",
         tabBarInactiveTintColor: "gray",
