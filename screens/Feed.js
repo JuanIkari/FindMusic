@@ -116,8 +116,8 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: 'absolute',
-    top: 40, // Ajusta según sea necesario
-    left: 20, // Ajusta según sea necesario
-    zIndex: 1, // Asegúrate de que esté por encima del contenido
+    top: 40,
+    left: 20,
+    zIndex: 1,
   }
 });
