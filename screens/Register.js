@@ -3,54 +3,44 @@ import { View, Text, StyleSheet, Pressable, ImageBackground } from "react-native
 import { LinearGradient } from "expo-linear-gradient";
 import { Image } from 'expo-image';
 import Entypo from '@expo/vector-icons/Entypo';
-import { SafeAreaView } from "react-native-safe-area-context";
-import { StatusBar } from "expo-status-bar";
-import * as NavigationBar from "expo-navigation-bar";
-
-NavigationBar.setPositionAsync("absolute");
-NavigationBar.setBackgroundColorAsync("#190633");
-
 
 export default function Register({ navigation }) {
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <LinearGradient colors={["#0C0322", "#190633"]} style={{ flex: 1, paddingTop: 30, paddingBottom: 100 }}>
-        <StatusBar style="light" backgroundColor="#0C0322" />
-        {/* imagen */}
-        <ImageBackground
-          source={{ uri: 'https://cdn.discordapp.com/attachments/1281332888473702457/1290145136285847562/chart.png?ex=66fb64ca&is=66fa134a&hm=2ffea3fa56aa62a868a85c0d556ea73333626884dd02f9a7b47be43bb984d904&' }}
-          style={{ flex: 1 }}
-          resizeMode="cover"
-        >
-          {/* logo */}
-          <View style={{ flex: 1, alignItems: "center", justifyContent: "center", zIndex: 1, top: 0 }}>
-            <Image
-              source={'https://i.ibb.co/0V0J1pK/1727370200014.png'}
-              style={{ width: 200, height: 220 }}
-            />
-          </View>
+    <LinearGradient colors={["#0C0322", "#190633"]} style={{ flex: 1, paddingTop: 30, paddingBottom: 100 }}>
+      {/* imagen */}
+      <ImageBackground
+        source={{ uri: 'https://cdn.discordapp.com/attachments/1281332888473702457/1290145136285847562/chart.png?ex=66fb64ca&is=66fa134a&hm=2ffea3fa56aa62a868a85c0d556ea73333626884dd02f9a7b47be43bb984d904&' }}
+        style={{ flex: 1, marginTop: 15 }}
+        resizeMode="cover"
+      >
+        {/* logo */}
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", zIndex: 1, top: 0 }}>
+          <Image
+            source={'https://i.ibb.co/0V0J1pK/1727370200014.png'}
+            style={{ width: 200, height: 220 }}
+          />
+        </View>
 
-          <LinearGradient colors={["transparent", "#190633"]} style={styles.gradient}
-          ></LinearGradient>
-          {/* botones */}
-          <View style={styles.button_container}>
-            <Pressable
-              style={styles.spotify_button}
-              onPress={() => navigation.navigate("Login")}
-            >
-              <Entypo name="spotify" size={24} color="black" />
-              <Text style={{ color: "black", fontWeight: 500, textAlign: "center", flex: 1 }}>Iniciar sesión con Spotify</Text>
-            </Pressable>
-            <Pressable
-              style={styles.button}
-              onPress={() => navigation.replace("Home")}
-            >
-              <Text style={{ color: "white", fontWeight: 500 }}>Registrarse</Text>
-            </Pressable>
-          </View>
-        </ImageBackground>
-      </LinearGradient>
-    </SafeAreaView>
+        <LinearGradient colors={["transparent", "#190633"]} style={styles.gradient}
+        ></LinearGradient>
+        {/* botones */}
+        <View style={styles.button_container}>
+          <Pressable
+            style={styles.spotify_button}
+            onPress={() => navigation.navigate("Login")}
+          >
+            <Entypo name="spotify" size={24} color="black" />
+            <Text style={{ color: "black", fontWeight: 500, textAlign: "center", flex: 1 }}>Iniciar sesión con Spotify</Text>
+          </Pressable>
+          <Pressable
+            style={styles.button}
+            onPress={() => navigation.replace("Home")}
+          >
+            <Text style={{ color: "white", fontWeight: 500 }}>Registrarse</Text>
+          </Pressable>
+        </View>
+      </ImageBackground>
+    </LinearGradient>
   );
 }
 
