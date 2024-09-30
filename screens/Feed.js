@@ -48,6 +48,7 @@ const SongItem = ({ item }) => {
 
   return (
     <View style={styles.songContainer}>
+      {/* Video de fondo */}
       <Video
         ref={videoRef}
         source={{ uri: item.video }}
@@ -57,7 +58,7 @@ const SongItem = ({ item }) => {
         shouldPlay
         isMuted
       />
-
+      {/* Imagen, nombre y artista de la canción */}
       <Image source={{ uri: item.imagen }} style={styles.image} />
       <View style={styles.textContainer}>
         <Text style={styles.title}>{item.nombre}</Text>
@@ -70,9 +71,12 @@ const SongItem = ({ item }) => {
 export default function Feed({ navigation }) {
   return (
     <LinearGradient colors={['#0C0322', '#190633']} style={{ flex: 1 }}>
+      {/* Botón para volver a register */}
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.reset({ routes: [{ name: "Register" }] })}>
         <Ionicons name="arrow-back" size={30} color="#fff" />
       </TouchableOpacity>
+
+      {/* Render de la lista de canciones */}
       <FlatList
         data={canciones}
         renderItem={({ item }) => <SongItem item={item} />}
