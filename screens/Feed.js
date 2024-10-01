@@ -4,6 +4,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Image } from 'expo-image';
 import { Video } from 'expo-av';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import Entypo from '@expo/vector-icons/Entypo';
 
 const canciones = [
   {
@@ -45,6 +46,7 @@ const canciones = [
 
 const SongItem = ({ item }) => {
   const videoRef = React.useRef(null);  // Crea una referencia para el video
+  const [liked, setLiked] = React.useState(false); // Estado para manejar si está gustado
 
   return (
     <View style={styles.songContainer}>
@@ -63,6 +65,24 @@ const SongItem = ({ item }) => {
       <View style={styles.textContainer}>
         <Text style={styles.title}>{item.nombre}</Text>
         <Text style={{ color: 'white' }}>{item.artista}</Text>
+      </View>
+      <View style={styles.iconContainer}>
+        <TouchableOpacity
+          style={styles.iconButton}
+          onPress={() => setLiked(!liked)} // Alternar estado al presionar
+        >
+          <Entypo
+            name={liked ? "heart" : "heart-outlined"} // Cambiar ícono según estado
+            size={30}
+            color="white"
+          />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.iconButton}>
+          <Entypo name="menu" size={30} color="white" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.iconButton}>
+          <Entypo name="plus" size={30} color="white" />
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -119,5 +139,15 @@ const styles = StyleSheet.create({
     top: 40,
     left: 20,
     zIndex: 1,
-  }
+  },
+  iconContainer: {
+    position: 'absolute',
+    bottom: 150,
+    right: 10,
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
+  iconButton: {
+    padding: 10,
+  },
 });
