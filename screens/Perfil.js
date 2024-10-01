@@ -1,13 +1,8 @@
 import * as React from "react";
-import { View, Text, Image, FlatList, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Pressable } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-
-const playlists = [
-  { id: 1, name: "This Is City Pop", image: "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da848168c88069169a25be9a9734" },
-  { id: 2, name: "R-M-P", image: "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000d72c424f972112b24029c7c6c975" },
-  { id: 3, name: "housesito", image: "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000d72c800577317f575b3dd9b46b4a" },
-  { id: 4, name: "Classic Punk", image: "https://i.scdn.co/image/ab67706f00000002a0fe39d8cece8e5ef70e4410" },
-];
+import { Image } from 'expo-image';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 export default function Perfil() {
   return (
@@ -24,19 +19,24 @@ export default function Perfil() {
         {/* Nombre de usuario */}
         <Text style={styles.userName}>Alespollo</Text>
 
-        {/* Lista de playlists */}
-        <Text style={styles.playlistTitle}>Tus playlists</Text>
-        <FlatList
-          data={playlists}
-          renderItem={({ item }) => (
-            <View style={styles.playlistItem}>
-              <Image source={{ uri: item.image }} style={styles.playlistImage} />
-              <Text style={styles.playlistName}>{item.name}</Text>
-            </View>
-          )}
-          keyExtractor={(item) => item.id.toString()}
-          style={{ width: '100%' }}
-        />
+        {/* Opciones del perfil */}
+        <View style={styles.optionsContainer}>
+          <Pressable style={styles.optionButton} onPress={() => {/* Navegar a editar perfil */ }}>
+            <MaterialIcons name="edit" size={24} color="white" style={styles.optionIcon} />
+            <Text style={styles.optionText}>Editar Perfil</Text>
+          </Pressable>
+          <Pressable style={styles.optionButton} onPress={() => {/* Navegar a configuración de privacidad */ }}>
+            <MaterialIcons name="lock-outline" size={24} color="white" style={styles.optionIcon} />
+            <Text style={styles.optionText}>Privacidad</Text>
+          </Pressable>
+          <Pressable style={styles.optionButton} onPress={() => {/* Navegar a historial de actividad */ }}>
+            <MaterialIcons name="history" size={24} color="white" style={styles.optionIcon} />
+            <Text style={styles.optionText}>Historial de Actividad</Text>
+          </Pressable>
+        </View>
+        <Pressable style={styles.sesionButton} onPress={() => {/* Cerrar sesión */ }}>
+          <Text style={styles.sesionText}>Cerrar Sesión</Text>
+        </Pressable>
       </View>
     </LinearGradient>
   );
@@ -48,7 +48,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-start',
     paddingTop: 140,
-    paddingHorizontal: 20,
   },
   profileImage: {
     width: 150,
@@ -62,30 +61,40 @@ const styles = StyleSheet.create({
     fontSize: 28,
     color: '#fff',
     fontWeight: 'bold',
-    marginBottom: 30,
+    marginBottom: 15,
   },
-  playlistTitle: {
-    fontSize: 20,
+  optionsContainer: {
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 100,
+  },
+  optionButton: {
+    flexDirection: 'row',
+    backgroundColor: '#190633',
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    marginVertical: 10,
+    width: '90%',
+    alignItems: 'center',
+  },
+  optionText: {
     color: '#fff',
     fontWeight: 'bold',
-    alignSelf: 'flex-start',
-    marginBottom: 10,
-  },
-  playlistItem: {
-    flexDirection: 'row', // Alinea imagen y texto horizontalmente
-    alignItems: 'center',
-    padding: 10,
-    marginVertical: 5,
-    borderRadius: 10,
-  },
-  playlistImage: {
-    width: 70,
-    height: 70,
-    borderRadius: 10,
-    marginRight: 15, // Espacio entre imagen y texto
-  },
-  playlistName: {
     fontSize: 16,
-    color: '#fff',
+  },
+  optionIcon: {
+    marginRight: 15,
+  },
+  sesionButton: {
+    backgroundColor: 'purple',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 30,
+    marginTop: 100,
+  },
+  sesionText: {
+    color: 'white',
+    fontWeight: 'bold',
   },
 });
