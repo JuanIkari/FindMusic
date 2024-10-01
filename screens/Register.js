@@ -36,6 +36,12 @@ export default function Register({ navigation }) {
             style={styles.button}
             onPress={() => navigation.replace("Home")}
           >
+            <Text style={{ color: "white", fontWeight: 500 }}>Iniciar Sesión</Text>
+          </Pressable>
+          <Pressable
+            style={styles.button}
+            onPress={() => navigation.replace("Home")}
+          >
             <Text style={{ color: "white", fontWeight: 500 }}>Registrarse</Text>
           </Pressable>
         </View>
