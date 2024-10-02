@@ -18,9 +18,7 @@ export default function Register({ navigation }) {
     >
       {/* imagen */}
       <ImageBackground
-        source={{
-          uri: "https://cdn.discordapp.com/attachments/1281332888473702457/1290145136285847562/chart.png?ex=66fb64ca&is=66fa134a&hm=2ffea3fa56aa62a868a85c0d556ea73333626884dd02f9a7b47be43bb984d904&",
-        }}
+        source={require("../assets/chart.png")}
         style={{ flex: 1, marginTop: 15 }}
         resizeMode="cover"
       >
