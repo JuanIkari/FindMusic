@@ -4,7 +4,6 @@ import { createStackNavigator, Header } from "@react-navigation/stack";
 import { StatusBar } from "expo-status-bar";
 
 import Register from "./screens/Register";
-import Login from "./screens/Login";
 import Home from "./screens/Home";
 
 const Stack = createStackNavigator();
@@ -12,9 +11,15 @@ const Stack = createStackNavigator();
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Register" screenOptions={{headerTransparent: true, headerTintColor: "#fff"}}>
-        <Stack.Screen name="Register" component={Register} options={{headerShown: false}}/>
-        <Stack.Screen name="Login" component={Login} />
+      <Stack.Navigator
+        initialRouteName="Register"
+        screenOptions={{ headerTransparent: true, headerTintColor: "#fff" }}
+      >
+        <Stack.Screen
+          name="Register"
+          component={Register}
+          options={{ headerShown: false }}
+        />
         <Stack.Screen
           name="Home"
           component={Home}
