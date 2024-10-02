@@ -10,7 +10,6 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { Image } from "expo-image";
 import { Video } from "expo-av";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import Entypo from "@expo/vector-icons/Entypo";
 
 const canciones = [
@@ -76,6 +75,7 @@ const SongItem = ({ item }) => {
         shouldPlay
         isMuted
       />
+
       {/* Imagen, nombre y artista de la canción */}
       <Image source={{ uri: item.imagen }} style={styles.image} />
       <View style={styles.textContainer}>

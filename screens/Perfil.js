@@ -64,6 +64,8 @@ export default function Perfil({ navigation }) {
             <Text style={styles.optionText}>Historial de Actividad</Text>
           </Pressable>
         </View>
+
+        {/* Botón de cerrar sesión (reset) */}
         <Pressable
           style={styles.sesionButton}
           onPress={() => {

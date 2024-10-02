@@ -12,6 +12,7 @@ import Entypo from "@expo/vector-icons/Entypo";
 
 export default function Register({ navigation }) {
   return (
+    //fondo
     <LinearGradient
       colors={["#0C0322", "#190633"]}
       style={{ flex: 1, paddingTop: 30, paddingBottom: 100 }}
@@ -38,10 +39,12 @@ export default function Register({ navigation }) {
           />
         </View>
 
+        {/* degradado img  */}
         <LinearGradient
           colors={["transparent", "#190633"]}
           style={styles.gradient}
         ></LinearGradient>
+
         {/* botones */}
         <View style={styles.button_container}>
           <Pressable
