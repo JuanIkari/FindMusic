@@ -3,11 +3,12 @@ import { View, Text, StyleSheet, Pressable } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Image } from "expo-image";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Perfil({ navigation }) {
   return (
     <LinearGradient colors={["#0C0322", "#190633"]} style={{ flex: 1 }}>
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container}>
         {/* Foto de perfil */}
         <Image
           source={{
@@ -74,7 +75,7 @@ export default function Perfil({ navigation }) {
         >
           <Text style={styles.sesionText}>Cerrar Sesión</Text>
         </Pressable>
-      </View>
+      </SafeAreaView>
     </LinearGradient>
   );
 }
