@@ -20,7 +20,7 @@ export default function Register({ navigation }) {
       {/* imagen */}
       <ImageBackground
         source={require("../assets/chart.png")}
-        style={{ flex: 1, marginTop: 15 }}
+        style={{ flex: 1, marginTop: 10 }}
         resizeMode="cover"
       >
         {/* logo */}
@@ -35,7 +35,7 @@ export default function Register({ navigation }) {
         >
           <Image
             source={"https://i.ibb.co/0V0J1pK/1727370200014.png"}
-            style={{ width: 200, height: 220 }}
+            style={{ width: 200, height: 240 }}
           />
         </View>
 
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    height: 1100,
+    height: 1200,
   },
   button_container: {
     position: "absolute",

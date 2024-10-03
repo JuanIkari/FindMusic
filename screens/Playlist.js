@@ -17,7 +17,7 @@ const playlists = [
   },
   {
     id: 3,
-    name: "housesito",
+    name: "house",
     image:
       "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000d72c800577317f575b3dd9b46b4a",
   },
