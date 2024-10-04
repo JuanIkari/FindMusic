@@ -9,6 +9,7 @@ import Feed from "./Feed";
 import Buscar from "./Buscar";
 import Perfil from "./Perfil";
 import Playlist from "./Playlist";
+import Social from "./Social";
 
 const Tab = createBottomTabNavigator();
 NavigationBar.setPositionAsync("absolute");
@@ -40,16 +41,18 @@ export default function Home() {
               Feed: "musical-notes-outline",
               Buscar: "search-outline",
               Perfil: "person-outline",
+              Social: "people-outline",
             };
 
             return <Icon name={icons[route.name]} size={size} color={color} />;
           }
         },
-        tabBarActiveTintColor: "purple",
+        tabBarActiveTintColor: "white",
         tabBarInactiveTintColor: "gray",
       })}
     >
       <Tab.Screen name="Feed" component={Feed} options={{ headerShown: false }} />
+      <Tab.Screen name="Social" component={Social} options={{ headerShown: false }} />
       <Tab.Screen name="Buscar" component={Buscar} options={{ headerShown: false }} />
       <Tab.Screen name="Playlist" component={Playlist} options={{ headerShown: false }} />
       <Tab.Screen name="Perfil" component={Perfil} options={{ headerShown: false }} />
