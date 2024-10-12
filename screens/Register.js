@@ -1,4 +1,6 @@
 import * as React from "react";
+import { ResponseType, useAuthRequest } from "expo-auth-session";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   View,
   Text,
@@ -11,6 +13,50 @@ import { Image } from "expo-image";
 import Entypo from "@expo/vector-icons/Entypo";
 
 export default function Register({ navigation }) {
+  const discovery = {
+    authorizationEndpoint: "https://accounts.spotify.com/authorize",
+    tokenEndpoint: "https://accounts.spotify.com/api/token",
+  };
+
+  // useAuthRequest debe estar fuera de la función `login`
+  const [request, response, promptAsync] = useAuthRequest(
+    {
+      responseType: ResponseType.Token,
+      clientId: "a6110594729042a5aaf6afabe2bb6fb1",
+      clientSecret: "0d7485e7e88e4393a6cf5b7da7f2e67c",
+      scopes: [
+        "user-read-currently-playing",
+        "user-read-recently-played",
+        "user-read-playback-state",
+        "user-top-read",
+        "user-modify-playback-state",
+        "streaming",
+        "user-read-email",
+        "user-read-private",
+      ],
+      redirectUri: "exp://192.168.0.12:8081/", // tu URI de redirección correcta
+    },
+    discovery
+  );
+
+  // Efecto para manejar la respuesta
+  React.useEffect(() => {
+    if (response?.type === "success") {
+      const { access_token } = response.params;
+      console.log(access_token); // Aquí se obtiene el token de acceso
+      storeDaata(access_token);
+    }
+  }, [response]);
+
+  const storeDaata = async (token) => {
+    try {
+      await AsyncStorage.setItem("@access_token", token);
+    } catch (e) {
+      // saving error
+      console.log("Error", e);
+    }
+  };
+
   return (
     //fondo
     <LinearGradient
@@ -49,7 +95,7 @@ export default function Register({ navigation }) {
         <View style={styles.button_container}>
           <Pressable
             style={styles.spotify_button}
-            onPress={() => navigation.replace("Home")}
+            onPress={() => promptAsync()} // Aquí llamas a promptAsync
           >
             <Entypo name="spotify" size={24} color="black" />
             <Text

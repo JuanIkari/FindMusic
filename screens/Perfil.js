@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 30,
-    marginTop: 100,
+    marginTop: 30,
   },
   sesionText: {
     color: "white",
