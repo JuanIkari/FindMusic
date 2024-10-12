@@ -4,21 +4,24 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Image } from "expo-image";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
 
 export default function Perfil({ navigation }) {
+  const { logout, user } = useContext(AuthContext);
   return (
     <LinearGradient colors={["#0C0322", "#190633"]} style={{ flex: 1 }}>
       <SafeAreaView style={styles.container}>
         {/* Foto de perfil */}
         <Image
           source={{
-            uri: "https://wallpapers.com/images/hd/anime-profile-picture-jioug7q8n43yhlwn.jpg",
+            uri: user.profileImage || "https://default-profile-url.jpg",
           }}
           style={styles.profileImage}
         />
 
         {/* Nombre de usuario */}
-        <Text style={styles.userName}>Alespollo</Text>
+        <Text style={styles.userName}>{user.name}</Text>
 
         {/* Opciones del perfil */}
         <View style={styles.optionsContainer}>
@@ -70,7 +73,7 @@ export default function Perfil({ navigation }) {
         <Pressable
           style={styles.sesionButton}
           onPress={() => {
-            navigation.reset({ routes: [{ name: "Register" }] });
+            logout();
           }}
         >
           <Text style={styles.sesionText}>Cerrar Sesión</Text>

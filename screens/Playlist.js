@@ -1,35 +1,11 @@
-import * as React from "react";
+import React, { useContext } from "react";
 import { View, Text, StyleSheet, FlatList, Image } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { AuthContext } from "../context/AuthContext";
 
-const playlists = [
-  {
-    id: 1,
-    name: "This Is City Pop",
-    image:
-      "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da848168c88069169a25be9a9734",
-  },
-  {
-    id: 2,
-    name: "R-M-P",
-    image:
-      "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000d72c424f972112b24029c7c6c975",
-  },
-  {
-    id: 3,
-    name: "house",
-    image:
-      "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000d72c800577317f575b3dd9b46b4a",
-  },
-  {
-    id: 4,
-    name: "Classic Punk",
-    image: "https://i.scdn.co/image/ab67706f00000002a0fe39d8cece8e5ef70e4410",
-  },
-];
-
-// Pantalla de configuraciones simple
 export default function Playlist() {
+  const { playlists } = useContext(AuthContext);
+
   return (
     <LinearGradient colors={["#0C0322", "#190633"]} style={{ flex: 1 }}>
       <View style={styles.container}>
@@ -42,13 +18,13 @@ export default function Playlist() {
             <View style={styles.playlistItem}>
               {/* Imagen y nombre de la playlist */}
               <Image
-                source={{ uri: item.image }}
+                source={{ uri: item.images[0]?.url }}
                 style={styles.playlistImage}
               />
               <Text style={styles.playlistName}>{item.name}</Text>
             </View>
           )}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item) => item.id}
           style={{ width: "100%" }}
         />
       </View>

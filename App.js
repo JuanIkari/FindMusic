@@ -5,28 +5,31 @@ import { StatusBar } from "expo-status-bar";
 
 import Register from "./screens/Register";
 import Home from "./screens/Home";
+import { AuthProvider } from "./context/AuthContext";
 
 const Stack = createStackNavigator();
 
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName="Register"
-        screenOptions={{ headerTransparent: true, headerTintColor: "#fff" }}
-      >
-        <Stack.Screen
-          name="Register"
-          component={Register}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Home"
-          component={Home}
-          options={{ headerShown: false }}
-        />
-      </Stack.Navigator>
-      <StatusBar style="light" />
+      <AuthProvider>
+        <Stack.Navigator
+          initialRouteName="Register"
+          screenOptions={{ headerTransparent: true, headerTintColor: "#fff" }}
+        >
+          <Stack.Screen
+            name="Register"
+            component={Register}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Home"
+            component={Home}
+            options={{ headerShown: false }}
+          />
+        </Stack.Navigator>
+        <StatusBar style="light" />
+      </AuthProvider>
     </NavigationContainer>
   );
 }
