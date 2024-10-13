@@ -43,7 +43,8 @@ export const AuthProvider = ({ children }) => {
         "user-read-email",
         "user-read-private",
       ],
-      redirectUri: "exp://192.168.0.12:8081/",
+      redirectUri: "exp://192.168.101.18:8081/", /* Ales */
+      /* redirectUri: "exp://192.168.0.12:8081/" */ /* Juanpa */
     },
     discovery
   );
