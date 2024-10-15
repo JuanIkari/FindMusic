@@ -9,7 +9,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { Image } from "expo-image";
 import Entypo from "@expo/vector-icons/Entypo";
-import { AuthContext } from "../context/AuthContext"; // Ajusta la ruta según tu proyecto
+import { AuthContext } from "../context/AuthContext";
 
 export default function Register() {
   const { promptAsync } = useContext(AuthContext);

@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ResponseType, useAuthRequest } from "expo-auth-session";
 import { useNavigation } from "@react-navigation/native";
+import { CLIENT_ID, CLIENT_SECRET } from "@env";
 
 // Crear el contexto
 export const AuthContext = createContext({
@@ -31,8 +32,8 @@ export const AuthProvider = ({ children }) => {
   const [request, response, promptAsync] = useAuthRequest(
     {
       responseType: ResponseType.Token,
-      clientId: "a6110594729042a5aaf6afabe2bb6fb1",
-      clientSecret: "0d7485e7e88e4393a6cf5b7da7f2e67c",
+      clientId: CLIENT_ID,
+      clientSecret: CLIENT_SECRET,
       scopes: [
         "user-read-currently-playing",
         "user-read-recently-played",
@@ -43,8 +44,8 @@ export const AuthProvider = ({ children }) => {
         "user-read-email",
         "user-read-private",
       ],
-      redirectUri: "exp://192.168.101.18:8081/", /* Ales */
-      /* redirectUri: "exp://192.168.0.12:8081/" */ /* Juanpa */
+      redirectUri: "exp://192.168.101.18:8081/" /* Ales */,
+      redirectUri: "exp://192.168.0.12:8081/" /* Juanpa */,
     },
     discovery
   );
