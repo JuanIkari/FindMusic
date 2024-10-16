@@ -9,12 +9,13 @@ export const AuthContext = createContext({
   token: "",
   isLoggedInd: false,
   user: {
-    id: "", // Añadimos el campo id para almacenar el Spotify ID
+    id: "",
     name: "",
     profileImage: "",
   },
   promptAsync: () => {},
   logout: async () => {},
+  getRecommendations: async () => {},
 });
 
 export const AuthProvider = ({ children }) => {
@@ -97,6 +98,21 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const getRecommendations = async () => {
+    if (!token) return [];
+
+    const url =
+      "https://api.spotify.com/v1/recommendations?limit=100&seed_genres=rock%2C+punk"; // Cambia el género según sea necesario
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+    return data.tracks; // Devuelve las canciones recomendadas
+  };
+
   // Definir la función de logout correctamente
   const logout = async () => {
     setToken(null);
@@ -122,6 +138,7 @@ export const AuthProvider = ({ children }) => {
     user: user, // Aquí se incluirá el Spotify ID
     promptAsync: promptAsync,
     logout: logout,
+    getRecommendations: getRecommendations,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

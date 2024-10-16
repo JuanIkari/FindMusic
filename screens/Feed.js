@@ -9,79 +9,76 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Image } from "expo-image";
-import { Video } from "expo-av";
+import { Audio } from "expo-av"; // Importamos el módulo de audio
 import Entypo from "@expo/vector-icons/Entypo";
+import { AuthContext } from "../context/AuthContext"; // Importamos el contexto
 
-const canciones = [
-  {
-    id: 1,
-    nombre: "Routines In The Night",
-    artista: "Twenty One Pilots",
-    imagen:
-      "https://cdns-images.dzcdn.net/images/cover/4f2819429ed92d35a649d609e39b29b5/0x1900-000000-80-0-0.jpg",
-    video:
-      "https://canvaz.scdn.co/upload/artist/3YQKmKGau1PzlVlkL1iodx/video/ec70d4f013bc4db89e1e827a0670d03e.cnvs.mp4",
-  },
-  {
-    id: 2,
-    nombre: "Ciudad de la Paz",
-    artista: "Dillom",
-    imagen:
-      "https://cdns-images.dzcdn.net/images/cover/0a462daf4e2f01144ac75fe08130e8ea/0x1900-000000-80-0-0.jpg",
-    video:
-      "https://canvaz.scdn.co/upload/artist/4cJD9t5QBFTUQcd3xfbOb2/video/3ce3fe720c1344ea80302b9a3128b7d7.cnvs.mp4",
-  },
-  {
-    id: 3,
-    nombre: "Ecstasy",
-    artista: "XXXTentacion, Noah Cyrus",
-    imagen:
-      "https://cdns-images.dzcdn.net/images/cover/cec40f144f8dda85a284559d1d052b30/0x1900-000000-80-0-0.jpg",
-    video:
-      "https://canvaz.scdn.co/upload/artist/15UsOTVnJzReFVN1VCnxy4/video/e1de2e4f58b54e79984118654f38569e.cnvs.mp4",
-  },
-  {
-    id: 4,
-    nombre: "Rackz got më",
-    artista: "Yeat, Gunna",
-    imagen:
-      "https://cdns-images.dzcdn.net/images/cover/1f04ad81a020bf43d986cdfd76b22146/500x500.jpg",
-    video:
-      "https://canvaz.scdn.co/upload/licensor/7JGwF0zhX9oItt9901OvB5/video/6fa67f1761ae4fb49af1e817d1c8a094.cnvs.mp4",
-  },
-  {
-    id: 5,
-    nombre: "Starboy",
-    artista: "The Weeknd, Daft Punk",
-    imagen: "https://i1.sndcdn.com/artworks-000195616860-vexfd1-t500x500.jpg",
-    video:
-      "https://canvaz.scdn.co/upload/licensor/7JGwF0zhX9oItt9901OvB5/video/f6e421356c8d44ec80395bae6ff12755.cnvs.mp4",
-  },
-];
+let globalSound = null; // Variable global para el sonido activo
 
-const SongItem = ({ item }) => {
-  const videoRef = React.useRef(null); // Crea una referencia para el video
-  const [liked, setLiked] = React.useState(false); // Estado para manejar si está gustado
+// Optimizamos el componente con React.memo para evitar renderizados innecesarios
+const SongItem = React.memo(({ item, isCurrentSong }) => {
+  const [liked, setLiked] = React.useState(false);
+  const [sound, setSound] = React.useState(null); // Estado para manejar el sonido
+  const [isPlaying, setIsPlaying] = React.useState(false); // Estado para saber si está reproduciendo
+
+  // Función para reproducir el preview de la canción
+  async function playSound() {
+    if (globalSound) {
+      // Detenemos la canción anterior si existe
+      await globalSound.stopAsync();
+      globalSound.unloadAsync();
+    }
+
+    try {
+      const { sound } = await Audio.Sound.createAsync({
+        uri: item.preview_url,
+      });
+      globalSound = sound; // Actualizamos la canción global activa
+      setSound(sound);
+      await sound.playAsync();
+      setIsPlaying(true);
+    } catch (error) {
+      console.log("Error al reproducir el sonido", error);
+    }
+  }
+
+  // Función para detener el preview de la canción
+  async function stopSound() {
+    if (sound) {
+      await sound.stopAsync();
+      setIsPlaying(false);
+    }
+  }
+
+  // Reproducir automáticamente cuando la canción es la actual en pantalla
+  React.useEffect(() => {
+    if (isCurrentSong) {
+      playSound(); // Reproducir la canción si es la actual
+    } else {
+      stopSound(); // Pausar la canción si ya no es la actual
+    }
+
+    return () => {
+      if (sound) {
+        sound.unloadAsync(); // Limpiar el sonido al desmontar el componente
+      }
+    };
+  }, [isCurrentSong]);
 
   return (
     <View style={styles.songContainer}>
-      {/* Video de fondo */}
-      <Video
-        ref={videoRef}
-        source={{ uri: item.video }}
-        style={styles.video}
-        resizeMode="cover"
-        isLooping
-        shouldPlay
-        isMuted
-      />
-
       {/* Imagen, nombre y artista de la canción */}
-      <Image source={{ uri: item.imagen }} style={styles.image} />
+      <Image
+        source={{ uri: item.album.images[0].url }}
+        style={styles.image}
+        cachePolicy="memory-disk" // Cachear imágenes para mejorar el rendimiento
+        resizeMode="cover" // Optimiza la visualización de la imagen
+      />
       <View style={styles.textContainer}>
-        <Text style={styles.title}>{item.nombre}</Text>
-        <Text style={{ color: "white" }}>{item.artista}</Text>
+        <Text style={styles.title}>{item.name}</Text>
+        <Text style={{ color: "white" }}>{item.artists[0].name}</Text>
       </View>
+
       <View style={styles.iconContainer}>
         <TouchableOpacity
           style={styles.iconButton}
@@ -89,6 +86,16 @@ const SongItem = ({ item }) => {
         >
           <Entypo
             name={liked ? "heart" : "heart-outlined"} // Cambiar ícono según estado
+            size={30}
+            color="white"
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.iconButton}
+          onPress={() => (isPlaying ? stopSound() : playSound())} // Cambiar el estado al presionar
+        >
+          <Entypo
+            name={isPlaying ? "controller-paus" : "controller-play"}
             size={30}
             color="white"
           />
@@ -102,19 +109,46 @@ const SongItem = ({ item }) => {
       </View>
     </View>
   );
-};
+});
 
 export default function Feed({ navigation }) {
+  const { getRecommendations } = React.useContext(AuthContext); // Usamos el contexto para obtener la función de recomendaciones
+  const [canciones, setCanciones] = React.useState([]);
+  const [currentIndex, setCurrentIndex] = React.useState(0); // Guardar el índice actual
+
+  React.useEffect(() => {
+    async function fetchSongs() {
+      const recommendedTracks = await getRecommendations(); // Obtenemos las recomendaciones de Spotify
+      const filteredTracks = recommendedTracks.filter(
+        (track) => track.preview_url // Filtramos canciones con preview_url
+      );
+      setCanciones(filteredTracks); // Guardamos solo las canciones filtradas
+    }
+
+    fetchSongs();
+  }, []);
+
   return (
     <LinearGradient colors={["#0C0322", "#190633"]} style={{ flex: 1 }}>
       {/* Render de la lista de canciones */}
       <FlatList
         data={canciones}
-        renderItem={({ item }) => <SongItem item={item} />}
+        renderItem={({ item, index }) => (
+          <SongItem item={item} isCurrentSong={index === currentIndex} />
+        )}
         keyExtractor={(item) => item.id.toString()}
         pagingEnabled
         decelerationRate="fast"
+        initialNumToRender={10} // Renderiza 10 elementos inicialmente
+        windowSize={5} // Mantén montados 5 elementos fuera de la pantalla
+        removeClippedSubviews={true} // Mejora el uso de la memoria
         style={{ flex: 1 }}
+        onScroll={(event) => {
+          const index = Math.round(
+            event.nativeEvent.contentOffset.y / Dimensions.get("screen").height
+          );
+          setCurrentIndex(index); // Actualizamos el índice de la canción actual
+        }}
       />
     </LinearGradient>
   );
@@ -136,20 +170,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: "white",
     textAlign: "center",
-  },
-  video: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    zIndex: -1,
-  },
-  backButton: {
-    position: "absolute",
-    top: 40,
-    left: 20,
-    zIndex: 1,
   },
   iconContainer: {
     position: "absolute",
