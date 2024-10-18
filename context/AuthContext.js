@@ -47,6 +47,7 @@ export const AuthProvider = ({ children }) => {
       ],
       redirectUri: "exp://192.168.101.18:8081/" /* Ales */,
       redirectUri: "exp://192.168.0.12:8081/" /* Juanpa */,
+      redirectUri: "exp://192.168.20.67:8081/" /* Diego */,
     },
     discovery
   );
