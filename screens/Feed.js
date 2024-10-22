@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     position: "absolute",
-    bottom: 150,
+    bottom: 80,
     right: 10,
     flexDirection: "column",
     alignItems: "center",
