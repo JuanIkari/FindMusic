@@ -70,7 +70,7 @@ const SongItem = React.memo(({ item, isCurrentSong }) => {
       {/* Imagen de fondo */}
       <Image
         source={{ uri: item.album.images[0].url }}
-        style={styles.image_background}
+        style={styles.background_image}
       />
       {/* Imagen, nombre y artista de la canción */}
       <Image
