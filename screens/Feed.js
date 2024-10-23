@@ -67,12 +67,17 @@ const SongItem = React.memo(({ item, isCurrentSong }) => {
 
   return (
     <View style={styles.songContainer}>
+      {/* Imagen de fondo */}
+      <Image
+        source={{ uri: item.album.images[0].url }}
+        style={styles.image_background}
+      />
       {/* Imagen, nombre y artista de la canción */}
       <Image
         source={{ uri: item.album.images[0].url }}
         style={styles.image}
         cachePolicy="memory-disk" // Cachear imágenes para mejorar el rendimiento
-        resizeMode="cover" // Optimiza la visualización de la imagen
+        contentFit="cover" // Optimiza la visualización de la imagen
       />
       <View style={styles.textContainer}>
         <Text style={styles.title}>{item.name}</Text>
@@ -166,6 +171,15 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 20,
   },
+  background_image: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    zIndex: -1,
+    opacity: 0.2,
+  },
   title: {
     fontSize: 24,
     color: "white",
@@ -173,12 +187,12 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     position: "absolute",
-    bottom: 80,
+    bottom: 110,
     right: 10,
     flexDirection: "column",
     alignItems: "center",
   },
   iconButton: {
-    padding: 10,
+    padding: 7,
   },
 });
