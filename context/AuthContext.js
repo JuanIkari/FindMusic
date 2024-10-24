@@ -7,11 +7,12 @@ import { CLIENT_ID, CLIENT_SECRET } from "@env";
 // Crear el contexto
 export const AuthContext = createContext({
   token: "",
-  isLoggedInd: false,
+  isLoggedIn: false,
   user: {
     id: "",
     name: "",
     profileImage: "",
+    email: "",
   },
   promptAsync: () => {},
   logout: async () => {},
@@ -20,14 +21,18 @@ export const AuthContext = createContext({
 
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
-  const [user, setUser] = useState({ id: "", name: "", profileImage: "" });
-  const [playlists, setPlaylists] = useState(null);
+  const [user, setUser] = useState({
+    id: "",
+    name: "",
+    profileImage: "",
+    email: "",
+  });
+  const navigation = useNavigation();
+
   const discovery = {
     authorizationEndpoint: "https://accounts.spotify.com/authorize",
     tokenEndpoint: "https://accounts.spotify.com/api/token",
   };
-
-  const navigator = useNavigation();
 
   // useAuthRequest para manejar el proceso de autenticación
   const [request, response, promptAsync] = useAuthRequest(
@@ -45,9 +50,9 @@ export const AuthProvider = ({ children }) => {
         "user-read-email",
         "user-read-private",
       ],
-      redirectUri: "exp://192.168.101.18:8081/" /* Ales */,
-      redirectUri: "exp://192.168.0.12:8081/" /* Juanpa */,
-      redirectUri: "exp://192.168.20.67:8081/" /* Diego */,
+      /* redirectUri: "exp://192.168.20.67:8081/" */ /* Diego */
+      /* redirectUri: "exp://192.168.101.18:8081/" */ /* Ales */
+      redirectUri: "exp://192.168.0.12:8081/",
     },
     discovery
   );
@@ -57,33 +62,35 @@ export const AuthProvider = ({ children }) => {
     if (response?.type === "success") {
       const { access_token } = response.params;
       setToken(access_token);
-
-      // Obtener los datos del usuario, incluyendo su Spotify ID
-      fetch("https://api.spotify.com/v1/me", {
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-        },
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          setUser({
-            id: data.id, // Aquí almacenamos el Spotify ID
-            name: data.display_name,
-            profileImage: data.images?.[0]?.url || "default_profile_image_url",
-          });
-        });
-
+      fetchUserProfile(access_token);
       storeData(access_token);
-      navigator.navigate("Home");
+      navigation.navigate("Home");
     }
   }, [response]);
+
+  const fetchUserProfile = async (access_token) => {
+    try {
+      const res = await fetch("https://api.spotify.com/v1/me", {
+        headers: { Authorization: `Bearer ${access_token}` },
+      });
+      const data = await res.json();
+      setUser({
+        id: data.id,
+        name: data.display_name,
+        profileImage: data.images?.[0]?.url || "default_profile_image_url",
+        email: data.email,
+      });
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+    }
+  };
 
   // Guardar el token en AsyncStorage
   const storeData = async (token) => {
     try {
       await AsyncStorage.setItem("@access_token", token);
     } catch (e) {
-      console.log("Error", e);
+      console.error("Error saving token:", e);
     }
   };
 
@@ -91,55 +98,59 @@ export const AuthProvider = ({ children }) => {
   const loadToken = async () => {
     try {
       const savedToken = await AsyncStorage.getItem("@access_token");
-      if (savedToken) {
-        setToken(savedToken);
-      }
+      if (savedToken) setToken(savedToken);
     } catch (e) {
-      console.log("Error loading token", e);
+      console.error("Error loading token:", e);
     }
   };
 
+  // Obtener recomendaciones
   const getRecommendations = async () => {
+    console.log("Token:", token);
     if (!token) return [];
-
-    const url =
-      "https://api.spotify.com/v1/recommendations?limit=100&seed_genres=rock%2C+punk"; // Cambia el género según sea necesario
-    const response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    const data = await response.json();
-    return data.tracks; // Devuelve las canciones recomendadas
+    try {
+      const url =
+        "https://api.spotify.com/v1/recommendations?limit=100&seed_genres=rock,punk";
+      const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+      return data.tracks;
+    } catch (error) {
+      console.error("Error fetching recommendations:", error);
+      return [];
+    }
   };
 
-  // Definir la función de logout correctamente
+  // Cerrar sesión
   const logout = async () => {
-    setToken(null);
     try {
       await AsyncStorage.removeItem("@access_token");
-      navigator.reset({
+
+      setToken(null);
+
+      navigation.reset({
+        index: 0,
         routes: [{ name: "Register" }],
       });
+
+      console.log("Token eliminado y navegación reseteada.");
     } catch (e) {
-      console.log("Error removing token", e);
+      console.error("Error removing token:", e);
     }
   };
 
-  // Llamar a la función al montar el componente
   useEffect(() => {
     loadToken();
-    console.log("playist", playlists);
   }, []);
 
   const value = {
-    token: token,
-    isLoggedInd: !!token,
-    user: user, // Aquí se incluirá el Spotify ID
-    promptAsync: promptAsync,
-    logout: logout,
-    getRecommendations: getRecommendations,
+    token,
+    isLoggedIn: !!token,
+    user,
+    promptAsync,
+    logout,
+    getRecommendations,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
