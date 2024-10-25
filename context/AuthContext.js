@@ -41,14 +41,17 @@ export const AuthProvider = ({ children }) => {
       clientId: CLIENT_ID,
       clientSecret: CLIENT_SECRET,
       scopes: [
-        "user-read-currently-playing",
-        "user-read-recently-played",
-        "user-read-playback-state",
-        "user-top-read",
-        "user-modify-playback-state",
-        "streaming",
-        "user-read-email",
-        "user-read-private",
+        "ugc-image-upload", //imagenes
+        "playlist-read-private", //leer playlist privadas
+        "playlist-modify-private", //modificar playlist privadas
+        "playlist-modify-public", //modificar playlist publicas
+        "user-follow-modify", //!modificar seguidores
+        "user-follow-read", //leer seguidores
+        "user-top-read", //leer top (canciones y artistas) de usuario
+        "user-library-modify", //modificar biblioteca
+        "user-library-read", //leer biblioteca
+        "user-read-email", //leer email
+        "user-read-private", //leer información privada
       ],
       /* redirectUri: "exp://192.168.20.67:8081/" */ /* Diego */
       /* redirectUri: "exp://192.168.101.18:8081/" */ /* Ales */

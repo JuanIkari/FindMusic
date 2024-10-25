@@ -9,95 +9,100 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Image } from "expo-image";
-import { Audio } from "expo-av"; // Importamos el módulo de audio
+import { Audio } from "expo-av"; // Módulo de audio
 import Entypo from "@expo/vector-icons/Entypo";
-import { AuthContext } from "../context/AuthContext"; // Importamos el contexto
+import { AuthContext } from "../context/AuthContext"; // Contexto
 
-let globalSound = null; // Variable global para el sonido activo
+const screenHeight = Dimensions.get("screen").height; // Constante para la altura de la pantalla
+let globalSound = null; // Variable global para manejar el sonido activo
 
-// Optimizamos el componente con React.memo para evitar renderizados innecesarios
+// Componente SongItem optimizado con React.memo para evitar renderizados innecesarios
 const SongItem = React.memo(({ item, isCurrentSong }) => {
-  const [liked, setLiked] = React.useState(false);
-  const [sound, setSound] = React.useState(null); // Estado para manejar el sonido
-  const [isPlaying, setIsPlaying] = React.useState(false); // Estado para saber si está reproduciendo
+  const [state, setState] = React.useState({
+    liked: false,
+    sound: null,
+    isPlaying: false,
+  });
+
+  const { liked, sound, isPlaying } = state;
 
   // Función para reproducir el preview de la canción
   async function playSound() {
     if (globalSound) {
-      // Detenemos la canción anterior si existe
       await globalSound.stopAsync();
       globalSound.unloadAsync();
     }
 
     try {
-      const { sound } = await Audio.Sound.createAsync({
+      const { sound: newSound } = await Audio.Sound.createAsync({
         uri: item.preview_url,
       });
-      globalSound = sound; // Actualizamos la canción global activa
-      setSound(sound);
-      await sound.playAsync();
-      setIsPlaying(true);
+      globalSound = newSound;
+      setState((prevState) => ({
+        ...prevState,
+        sound: newSound,
+        isPlaying: true,
+      }));
+      await newSound.playAsync();
     } catch (error) {
       console.log("Error al reproducir el sonido", error);
     }
   }
 
-  // Función para detener el preview de la canción
+  // Función para detener la canción
   async function stopSound() {
     if (sound) {
       await sound.stopAsync();
-      setIsPlaying(false);
+      setState((prevState) => ({ ...prevState, isPlaying: false }));
     }
   }
 
-  // Reproducir automáticamente cuando la canción es la actual en pantalla
   React.useEffect(() => {
     if (isCurrentSong) {
-      playSound(); // Reproducir la canción si es la actual
+      playSound();
     } else {
-      stopSound(); // Pausar la canción si ya no es la actual
+      stopSound();
     }
 
     return () => {
       if (sound) {
-        sound.unloadAsync(); // Limpiar el sonido al desmontar el componente
+        sound.unloadAsync(); // Limpia el sonido cuando se desmonta
       }
     };
   }, [isCurrentSong]);
 
   return (
     <View style={styles.songContainer}>
-      {/* Imagen de fondo */}
       <Image
         source={{ uri: item.album.images[0].url }}
-        style={styles.background_image}
+        style={styles.backgroundImage}
       />
-      {/* Imagen, nombre y artista de la canción */}
       <Image
         source={{ uri: item.album.images[0].url }}
         style={styles.image}
-        cachePolicy="memory-disk" // Cachear imágenes para mejorar el rendimiento
-        contentFit="cover" // Optimiza la visualización de la imagen
+        cachePolicy="memory-disk"
+        contentFit="cover"
       />
       <View style={styles.textContainer}>
         <Text style={styles.title}>{item.name}</Text>
-        <Text style={{ color: "white" }}>{item.artists[0].name}</Text>
+        <Text style={styles.artist}>{item.artists[0].name}</Text>
       </View>
-
       <View style={styles.iconContainer}>
         <TouchableOpacity
           style={styles.iconButton}
-          onPress={() => setLiked(!liked)} // Alternar estado al presionar
+          onPress={() =>
+            setState((prevState) => ({ ...prevState, liked: !liked }))
+          }
         >
           <Entypo
-            name={liked ? "heart" : "heart-outlined"} // Cambiar ícono según estado
+            name={liked ? "heart" : "heart-outlined"}
             size={30}
             color="white"
           />
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.iconButton}
-          onPress={() => (isPlaying ? stopSound() : playSound())} // Cambiar el estado al presionar
+          onPress={() => (isPlaying ? stopSound() : playSound())}
         >
           <Entypo
             name={isPlaying ? "controller-paus" : "controller-play"}
@@ -116,18 +121,22 @@ const SongItem = React.memo(({ item, isCurrentSong }) => {
   );
 });
 
-export default function Feed({ navigation }) {
-  const { getRecommendations } = React.useContext(AuthContext); // Usamos el contexto para obtener la función de recomendaciones
+export default function Feed() {
+  const { getRecommendations } = React.useContext(AuthContext);
   const [canciones, setCanciones] = React.useState([]);
-  const [currentIndex, setCurrentIndex] = React.useState(0); // Guardar el índice actual
+  const [currentIndex, setCurrentIndex] = React.useState(0);
 
   React.useEffect(() => {
     async function fetchSongs() {
-      const recommendedTracks = await getRecommendations(); // Obtenemos las recomendaciones de Spotify
-      const filteredTracks = recommendedTracks.filter(
-        (track) => track.preview_url // Filtramos canciones con preview_url
-      );
-      setCanciones(filteredTracks); // Guardamos solo las canciones filtradas
+      try {
+        const recommendedTracks = await getRecommendations();
+        const filteredTracks = recommendedTracks.filter(
+          (track) => track.preview_url
+        );
+        setCanciones(filteredTracks);
+      } catch (error) {
+        console.error("Error fetching recommendations", error);
+      }
     }
 
     fetchSongs();
@@ -135,7 +144,6 @@ export default function Feed({ navigation }) {
 
   return (
     <LinearGradient colors={["#0C0322", "#190633"]} style={{ flex: 1 }}>
-      {/* Render de la lista de canciones */}
       <FlatList
         data={canciones}
         renderItem={({ item, index }) => (
@@ -144,15 +152,15 @@ export default function Feed({ navigation }) {
         keyExtractor={(item) => item.id.toString()}
         pagingEnabled
         decelerationRate="fast"
-        initialNumToRender={10} // Renderiza 10 elementos inicialmente
-        windowSize={5} // Mantén montados 5 elementos fuera de la pantalla
-        removeClippedSubviews={true} // Mejora el uso de la memoria
+        initialNumToRender={10}
+        windowSize={5}
+        removeClippedSubviews={true}
         style={{ flex: 1 }}
         onScroll={(event) => {
           const index = Math.round(
-            event.nativeEvent.contentOffset.y / Dimensions.get("screen").height
+            event.nativeEvent.contentOffset.y / screenHeight
           );
-          setCurrentIndex(index); // Actualizamos el índice de la canción actual
+          setCurrentIndex(index);
         }}
       />
     </LinearGradient>
@@ -161,7 +169,7 @@ export default function Feed({ navigation }) {
 
 const styles = StyleSheet.create({
   songContainer: {
-    height: Dimensions.get("screen").height,
+    height: screenHeight,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -171,19 +179,25 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 20,
   },
-  background_image: {
-    position: 'absolute',
+  backgroundImage: {
+    position: "absolute",
     top: 0,
     left: 0,
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
     zIndex: -1,
     opacity: 0.2,
+  },
+  textContainer: {
+    alignItems: "center",
   },
   title: {
     fontSize: 24,
     color: "white",
     textAlign: "center",
+  },
+  artist: {
+    color: "white",
   },
   iconContainer: {
     position: "absolute",
