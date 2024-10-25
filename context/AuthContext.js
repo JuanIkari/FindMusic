@@ -13,10 +13,11 @@ export const AuthContext = createContext({
     name: "",
     profileImage: "",
     email: "",
+    followers: 0,
   },
-  promptAsync: () => {},
-  logout: async () => {},
-  getRecommendations: async () => {},
+  promptAsync: () => { },
+  logout: async () => { },
+  getRecommendations: async () => { },
 });
 
 export const AuthProvider = ({ children }) => {
@@ -26,6 +27,7 @@ export const AuthProvider = ({ children }) => {
     name: "",
     profileImage: "",
     email: "",
+    followers: 0,
   });
   const navigation = useNavigation();
 
@@ -41,21 +43,19 @@ export const AuthProvider = ({ children }) => {
       clientId: CLIENT_ID,
       clientSecret: CLIENT_SECRET,
       scopes: [
-        "ugc-image-upload", //imagenes
-        "playlist-read-private", //leer playlist privadas
-        "playlist-modify-private", //modificar playlist privadas
-        "playlist-modify-public", //modificar playlist publicas
-        "user-follow-modify", //!modificar seguidores
-        "user-follow-read", //leer seguidores
-        "user-top-read", //leer top (canciones y artistas) de usuario
-        "user-library-modify", //modificar biblioteca
-        "user-library-read", //leer biblioteca
-        "user-read-email", //leer email
-        "user-read-private", //leer información privada
+        "ugc-image-upload",
+        "playlist-read-private",
+        "playlist-modify-private",
+        "playlist-modify-public",
+        "user-follow-modify",
+        "user-follow-read",
+        "user-top-read",
+        "user-library-modify",
+        "user-library-read",
+        "user-read-email",
+        "user-read-private",
       ],
-      /* redirectUri: "exp://192.168.20.67:8081/" */ /* Diego */
-      /* redirectUri: "exp://192.168.101.18:8081/" */ /* Ales */
-      redirectUri: "exp://192.168.0.12:8081/",
+      redirectUri: "exp://192.168.101.18:8081/", // Cambia esto según tu configuración
     },
     discovery
   );
@@ -82,7 +82,17 @@ export const AuthProvider = ({ children }) => {
         name: data.display_name,
         profileImage: data.images?.[0]?.url || "default_profile_image_url",
         email: data.email,
+        followers: data.followers.total,
       });
+
+      storeUserData({
+        id: data.id,
+        name: data.display_name,
+        profileImage: data.images?.[0]?.url || "default_profile_image_url",
+        email: data.email,
+        followers: data.followers.total,
+      });
+
     } catch (error) {
       console.error("Error fetching user profile:", error);
     }
@@ -97,19 +107,65 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const storeUserData = async (userData) => {
+    try {
+      await AsyncStorage.setItem("@user_data", JSON.stringify(userData));
+    } catch (e) {
+      console.error("Error guardando la data del usuario:", e);
+    };
+  }
+
+  const loadUserData = async () => {
+    try {
+      const savedUserData = await AsyncStorage.getItem("@user_data");
+      if (savedUserData) {
+        setUser(JSON.parse(savedUserData));
+      }
+    } catch (e) {
+      console.error("Error loading user data:", e);
+    }
+  };
+
   // Cargar el token al iniciar la app
   const loadToken = async () => {
     try {
       const savedToken = await AsyncStorage.getItem("@access_token");
-      if (savedToken) setToken(savedToken);
+      if (savedToken) {
+        setToken(savedToken);
+        // Verificar si el token es válido
+        const isValid = await checkTokenValidity(savedToken);
+        if (isValid) {
+          await loadUserData();
+          navigation.navigate("Home"); // Redirigir a Home si el token es válido
+        } else {
+          await AsyncStorage.removeItem("@access_token");
+          setToken(null); // Limpiar el estado del token si no es válido
+          navigation.navigate("Register"); // Redirigir a Register si el token no es válido
+        }
+      } else {
+        navigation.navigate("Register"); // Redirigir a Register si no hay token guardado
+      }
     } catch (e) {
       console.error("Error loading token:", e);
+      navigation.navigate("Register"); // Redirigir a Register en caso de error
+    }
+  };
+
+  // Función para verificar la validez del token
+  const checkTokenValidity = async (token) => {
+    try {
+      const res = await fetch("https://api.spotify.com/v1/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return res.ok; // Retorna true si el token es válido
+    } catch (error) {
+      console.error("Error checking token validity:", error);
+      return false; // En caso de error, asumimos que no es válido
     }
   };
 
   // Obtener recomendaciones
   const getRecommendations = async () => {
-    console.log("Token:", token);
     if (!token) return [];
     try {
       const url =
@@ -129,7 +185,6 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await AsyncStorage.removeItem("@access_token");
-
       setToken(null);
 
       navigation.reset({
@@ -144,7 +199,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    loadToken();
+    loadToken(); // Cargar el token al iniciar la aplicación
   }, []);
 
   const value = {
