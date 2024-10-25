@@ -4,11 +4,17 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Image } from "expo-image";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { AuthContext } from "../context/AuthContext";
 
 export default function Perfil({ navigation }) {
   const { logout, user } = useContext(AuthContext);
+
+  // Asegúrate de que el nombre y la imagen se actualicen al cambiar el contexto
+  useEffect(() => {
+    // Aquí podrías agregar lógica adicional si es necesario
+  }, [user]);
+
   return (
     <LinearGradient colors={["#0C0322", "#190633"]} style={{ flex: 1 }}>
       <SafeAreaView style={styles.container}>
@@ -21,7 +27,8 @@ export default function Perfil({ navigation }) {
         />
 
         {/* Nombre de usuario */}
-        <Text style={styles.userName}>{user.name}</Text>
+        <Text style={styles.userName}>{user.name || "Nombre no disponible"}</Text>
+        <Text style={styles.user_followers}>Seguidores: {user.followers}</Text>
 
         {/* Opciones del perfil */}
         <View style={styles.optionsContainer}>
@@ -100,6 +107,12 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: 28,
+    color: "#fff",
+    fontWeight: "bold",
+    marginBottom: 15,
+  },
+  user_followers: {
+    fontSize: 14,
     color: "#fff",
     fontWeight: "bold",
     marginBottom: 15,
