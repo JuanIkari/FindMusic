@@ -27,6 +27,8 @@ export const AuthProvider = ({ children }) => {
     profileImage: "",
     email: "",
   });
+  const [cachedGenres, setCachedGenres] = useState([]);
+  const [cachedArtistIds, setCachedArtistIds] = useState([]);
   const navigation = useNavigation();
 
   const discovery = {
@@ -68,6 +70,7 @@ export const AuthProvider = ({ children }) => {
       fetchUserProfile(access_token);
       storeData(access_token);
       navigation.navigate("Home");
+      fetchTopArtists(access_token);
     }
   }, [response]);
 
@@ -107,18 +110,55 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Obtener recomendaciones
-  const getRecommendations = async () => {
-    console.log("Token:", token);
-    if (!token) return [];
+  // Obtener recomendaciones de Spotify
+  const fetchTopArtists = async (access_token) => {
     try {
-      const url =
-        "https://api.spotify.com/v1/recommendations?limit=100&seed_genres=rock,punk";
-      const response = await fetch(url, {
+      const response = await fetch(
+        "https://api.spotify.com/v1/me/top/artists?limit=30",
+        {
+          headers: { Authorization: `Bearer ${access_token}` },
+        }
+      );
+      const data = await response.json();
+
+      const genres = data.items.flatMap((artist) => artist.genres);
+      const artistIds = data.items.map((artist) => artist.id);
+
+      setCachedGenres([...new Set(genres)]);
+      setCachedArtistIds(artistIds);
+    } catch (error) {
+      console.error("Error fetching top artists:", error);
+    }
+  };
+
+  const getRecommendations = async () => {
+    if (!token) return [];
+
+    const uniqueGenres = cachedGenres.map((genre) =>
+      genre.replace(/\s+/g, "+")
+    );
+    const numGenres = Math.floor(Math.random() * 5) + 1;
+    const selectedGenres = uniqueGenres
+      .sort(() => 0.5 - Math.random())
+      .slice(0, numGenres);
+
+    const useGenres = Math.random() < 0.5;
+    let recommendationsUrl;
+
+    if (useGenres) {
+      const seedGenres = selectedGenres.join(",");
+      recommendationsUrl = `https://api.spotify.com/v1/recommendations?limit=5&seed_genres=${seedGenres}`;
+    } else {
+      const seedArtists = cachedArtistIds.slice(0, numGenres).join(",");
+      recommendationsUrl = `https://api.spotify.com/v1/recommendations?limit=5&seed_artists=${seedArtists}`;
+    }
+
+    try {
+      const response = await fetch(recommendationsUrl, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const data = await response.json();
-      return data.tracks;
+      const recommendationsData = await response.json();
+      return recommendationsData.tracks;
     } catch (error) {
       console.error("Error fetching recommendations:", error);
       return [];

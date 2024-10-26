@@ -125,22 +125,27 @@ export default function Feed() {
   const { getRecommendations } = React.useContext(AuthContext);
   const [canciones, setCanciones] = React.useState([]);
   const [currentIndex, setCurrentIndex] = React.useState(0);
+  const [isLoading, setIsLoading] = React.useState(false); // Nuevo estado para el loading
 
   React.useEffect(() => {
-    async function fetchSongs() {
-      try {
-        const recommendedTracks = await getRecommendations();
-        const filteredTracks = recommendedTracks.filter(
-          (track) => track.preview_url
-        );
-        setCanciones(filteredTracks);
-      } catch (error) {
-        console.error("Error fetching recommendations", error);
-      }
-    }
-
-    fetchSongs();
+    fetchSongs(); // Cargar las canciones inicialmente
   }, []);
+
+  // Función para obtener canciones de recomendaciones
+  const fetchSongs = async () => {
+    setIsLoading(true); // Indica que se está cargando
+    try {
+      const recommendedTracks = await getRecommendations();
+      const filteredTracks = recommendedTracks.filter(
+        (track) => track.preview_url
+      );
+      setCanciones((prevCanciones) => [...prevCanciones, ...filteredTracks]); // Agregar nuevas canciones
+    } catch (error) {
+      console.error("Error fetching recommendations", error);
+    } finally {
+      setIsLoading(false); // Indica que se terminó de cargar
+    }
+  };
 
   return (
     <LinearGradient colors={["#0C0322", "#190633"]} style={{ flex: 1 }}>
@@ -149,7 +154,7 @@ export default function Feed() {
         renderItem={({ item, index }) => (
           <SongItem item={item} isCurrentSong={index === currentIndex} />
         )}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item, index) => `${item.id}-${index}`}
         pagingEnabled
         decelerationRate="fast"
         initialNumToRender={10}
@@ -162,6 +167,9 @@ export default function Feed() {
           );
           setCurrentIndex(index);
         }}
+        onEndReached={fetchSongs} // Cargar más canciones al llegar al final
+        onEndReachedThreshold={0.5} // Umbral para disparar la carga de más canciones (0.5 significa cuando el usuario esté en la mitad de la pantalla antes del final)
+        ListFooterComponent={isLoading ? <Text>Cargando...</Text> : null} // Mostrar un indicador de carga mientras se obtienen nuevas canciones
       />
     </LinearGradient>
   );
