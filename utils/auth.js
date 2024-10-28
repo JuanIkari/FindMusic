@@ -4,41 +4,33 @@ import { TOKEN } from "@env";
 const apiKey = TOKEN;
 
 export async function register(email, password) {
-  const url = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`;
+  const registerUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`;
+  const loginUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`;
+
   try {
-    const response = await axios.post(url, {
+    // Intentamos registrar el usuario
+    const response = await axios.post(registerUrl, {
       email,
       password,
       returnSecureToken: true,
     });
 
-    const token = response.data.idToken;
-    return token; // Devuelve el token si el registro fue exitoso
+    // Si el registro es exitoso, retornamos el token
+    return response.data.idToken;
   } catch (error) {
-    console.log("Error in registration:", error.response?.data || error);
-  }
-}
+    // Si hay un error, asumimos que el usuario ya está registrado e intentamos iniciar sesión
+    try {
+      const loginResponse = await axios.post(loginUrl, {
+        email,
+        password,
+        returnSecureToken: true,
+      });
 
-/* async function authenticate(mode, email, password) {
-  const url = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`;
-  try {
-    const response = await axios.post(url, {
-      email,
-      password,
-      returnSecureToken: true,
-    });
-    if (response.status === 200) {
-      const token = response.data.idToken;
-      return token;
-    } else {
-      console.log("Error in authentication 2");
+      // Retornamos el token de sesión
+      return loginResponse.data.idToken;
+    } catch (loginError) {
+      console.error("Error en autenticación o registro:", loginError);
+      throw new Error("No se pudo autenticar o registrar al usuario.");
     }
-  } catch (error) {
-    console.log("error", error);
   }
 }
-
-export async function loginAuth(email, password) {
-  return authenticate("login", email, password);
-}
- */
