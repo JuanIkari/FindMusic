@@ -28,6 +28,7 @@ export const AuthProvider = ({ children }) => {
     profileImage: "",
     email: "",
     followers: 0,
+    product: ""
   });
   const navigation = useNavigation();
 
@@ -83,6 +84,7 @@ export const AuthProvider = ({ children }) => {
         profileImage: data.images?.[0]?.url || "default_profile_image_url",
         email: data.email,
         followers: data.followers.total,
+        product : data.product
       });
 
       storeUserData({
@@ -91,6 +93,7 @@ export const AuthProvider = ({ children }) => {
         profileImage: data.images?.[0]?.url || "default_profile_image_url",
         email: data.email,
         followers: data.followers.total,
+        product : data.product
       });
 
     } catch (error) {
