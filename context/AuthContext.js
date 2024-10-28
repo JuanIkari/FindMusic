@@ -14,10 +14,12 @@ export const AuthContext = createContext({
     profileImage: "",
     email: "",
     followers: 0,
+    artistIds: [],
+    genres: [],
   },
-  promptAsync: () => { },
-  logout: async () => { },
-  getRecommendations: async () => { },
+  promptAsync: () => {},
+  logout: async () => {},
+  getRecommendations: async () => {},
 });
 
 export const AuthProvider = ({ children }) => {
@@ -28,6 +30,8 @@ export const AuthProvider = ({ children }) => {
     profileImage: "",
     email: "",
     followers: 0,
+    artistIds: [],
+    genres: [],
     product: ""
   });
   const navigation = useNavigation();
@@ -56,7 +60,9 @@ export const AuthProvider = ({ children }) => {
         "user-read-email",
         "user-read-private",
       ],
-      redirectUri: "exp://192.168.101.18:8081/", // Cambia esto según tu configuración
+      /* redirectUri: "exp://192.168.20.67:8081/" */ /* Diego */
+      /* redirectUri: "exp://192.168.101.18:8081/" */ /* Ales */
+      redirectUri: "exp://192.168.0.12:8081/",
     },
     discovery
   );
@@ -77,13 +83,27 @@ export const AuthProvider = ({ children }) => {
       const res = await fetch("https://api.spotify.com/v1/me", {
         headers: { Authorization: `Bearer ${access_token}` },
       });
+
+      const response = await fetch(
+        "https://api.spotify.com/v1/me/top/artists?limit=20",
+        {
+          headers: { Authorization: `Bearer ${access_token}` },
+        }
+      );
       const data = await res.json();
+      const data2 = await response.json();
+
+      const genres = data2.items.flatMap((artist) => artist.genres);
+      const artistIds = data2.items.map((artist) => artist.id);
+
       setUser({
         id: data.id,
         name: data.display_name,
         profileImage: data.images?.[0]?.url || "default_profile_image_url",
         email: data.email,
         followers: data.followers.total,
+        artistIds: artistIds,
+        genres: [...new Set(genres)],
         product : data.product
       });
 
@@ -93,11 +113,57 @@ export const AuthProvider = ({ children }) => {
         profileImage: data.images?.[0]?.url || "default_profile_image_url",
         email: data.email,
         followers: data.followers.total,
-        product : data.product
       });
-
     } catch (error) {
       console.error("Error fetching user profile:", error);
+    }
+  };
+
+  const getRecommendations = async () => {
+    if (!token) return [];
+
+    const uniqueGenres = user.genres.map((genre) => genre.replace(/\s+/g, "+"));
+    const numGenres = Math.floor(Math.random() * 5) + 1;
+    const selectedGenres = uniqueGenres
+      .sort(() => 0.5 - Math.random())
+      .slice(0, numGenres);
+
+    const useGenres = Math.random() < 0.5;
+    let recommendationsUrl;
+
+    if (useGenres) {
+      const seedGenres = selectedGenres.join(",");
+      recommendationsUrl = `https://api.spotify.com/v1/recommendations?limit=10&seed_genres=${seedGenres}`;
+      console.log("Usando géneros:", seedGenres);
+    } else {
+      // Seleccionar al azar numGenres artistas del array de 30 artistas
+      const selectedArtists = user.artistIds
+        .sort(() => 0.5 - Math.random())
+        .slice(0, 1);
+
+      const seedArtists = selectedArtists.join(",");
+      recommendationsUrl = `https://api.spotify.com/v1/recommendations?limit=10&seed_artists=${seedArtists}`;
+      console.log("Usando artistas:", seedArtists);
+    }
+
+    // Fetch de recomendaciones
+    try {
+      const response = await fetch(recommendationsUrl, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.status === 429) {
+        const retryAfter = response.headers.get("Retry-After");
+        console.warn(
+          `Rate limit reached. Retrying after ${retryAfter} seconds.`
+        );
+        await new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
+        return getRecommendations(); // Retry after delay
+      }
+      const recommendationsData = await response.json();
+      return recommendationsData.tracks;
+    } catch (error) {
+      console.error("Error fetching recommendations:", error);
+      return [];
     }
   };
 
@@ -115,8 +181,8 @@ export const AuthProvider = ({ children }) => {
       await AsyncStorage.setItem("@user_data", JSON.stringify(userData));
     } catch (e) {
       console.error("Error guardando la data del usuario:", e);
-    };
-  }
+    }
+  };
 
   const loadUserData = async () => {
     try {
@@ -167,23 +233,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Obtener recomendaciones
-  const getRecommendations = async () => {
-    if (!token) return [];
-    try {
-      const url =
-        "https://api.spotify.com/v1/recommendations?limit=100&seed_genres=rock,punk";
-      const response = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await response.json();
-      return data.tracks;
-    } catch (error) {
-      console.error("Error fetching recommendations:", error);
-      return [];
-    }
-  };
-
   // Cerrar sesión
   const logout = async () => {
     try {
@@ -202,7 +251,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    loadToken(); // Cargar el token al iniciar la aplicación
+    loadToken();
   }, []);
 
   const value = {
