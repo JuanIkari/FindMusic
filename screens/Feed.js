@@ -1,6 +1,7 @@
 import React, { useContext, useState } from "react";
 import {
   View,
+  ScrollView,
   Text,
   FlatList,
   StyleSheet,
@@ -151,7 +152,7 @@ export default function Feed() {
       const filteredTracks = recommendedTracks.filter(
         (track) => track.preview_url
       );
-      /* console.log("Recomendaciones:", filteredTracks); */
+      console.log("Recomendaciones:", filteredTracks);
 
       // Agrega nuevas canciones a la lista actual
       setCanciones((prevCanciones) => [...prevCanciones, ...filteredTracks]);
@@ -232,16 +233,22 @@ export default function Feed() {
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={styles.modalContainer}>
+        <ScrollView contentContainerStyle={{ alignItems: 'center', justifyContent: 'center' }}>
           <View style={styles.modalView}>
             <Text style={styles.modalTitle}>Selecciona una playlist</Text>
             {playlists.length > 0 ? (
               playlists.map((playlist) => (
-                <Button
+                <TouchableOpacity
                   key={playlist.id}
-                  title={playlist.name}
+                  style={styles.playlistItem}
                   onPress={() => addToPlaylist(playlist.id)}
-                />
+                >
+                  <Image
+                    source={{ uri: playlist.images[0].url }}
+                    style={styles.playlistImage}
+                  />
+                  <Text style={styles.playlistName}>{playlist.name}</Text>
+                </TouchableOpacity>
               ))
             ) : (
               <Text style={{ color: "white" }}>
@@ -254,8 +261,9 @@ export default function Feed() {
               color="#f44"
             />
           </View>
-        </View>
+        </ScrollView>
       </Modal>
+
     </LinearGradient>
   );
 }
@@ -302,23 +310,37 @@ const styles = StyleSheet.create({
   iconButton: {
     padding: 7,
   },
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
   modalView: {
-    width: 300,
-    backgroundColor: "#333",
-    borderRadius: 10,
+    backgroundColor: 'white',
     padding: 20,
-    alignItems: "center",
+    borderRadius: 10,
+    alignItems: 'center',
+    width: '80%',
   },
   modalTitle: {
-    fontSize: 24,
-    color: "#fff",
-    marginBottom: 15,
-    fontWeight: "bold",
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  playlistItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    backgroundColor: '#333',
+    borderRadius: 8,
+    marginBottom: 8,
+    width: '100%',
+  },
+  playlistImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 4,
+    marginRight: 10,
+  },
+  playlistName: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '500',
   },
 });
