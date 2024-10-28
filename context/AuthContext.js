@@ -2,11 +2,13 @@ import React, { createContext, useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ResponseType, useAuthRequest } from "expo-auth-session";
 import { useNavigation } from "@react-navigation/native";
-import { CLIENT_ID, CLIENT_SECRET } from "@env";
+import { ID, SECRET } from "@env";
+import { loginAuth, register } from "../utils/auth";
 
 // Crear el contexto
 export const AuthContext = createContext({
   token: "",
+  tokenbd: "",
   isLoggedIn: false,
   user: {
     id: "",
@@ -17,6 +19,7 @@ export const AuthContext = createContext({
     artistIds: [],
     genres: [],
   },
+  login: async () => {},
   promptAsync: () => {},
   logout: async () => {},
   getRecommendations: async () => {},
@@ -24,6 +27,7 @@ export const AuthContext = createContext({
 
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
+  const [tokenbd, setTokenbd] = useState(null);
   const [user, setUser] = useState({
     id: "",
     name: "",
@@ -44,8 +48,8 @@ export const AuthProvider = ({ children }) => {
   const [request, response, promptAsync] = useAuthRequest(
     {
       responseType: ResponseType.Token,
-      clientId: CLIENT_ID,
-      clientSecret: CLIENT_SECRET,
+      clientId: ID,
+      clientSecret: SECRET,
       scopes: [
         "ugc-image-upload",
         "playlist-read-private",
@@ -114,6 +118,9 @@ export const AuthProvider = ({ children }) => {
         artistIds: artistIds,
         genres: [...new Set(genres)],
       });
+
+      const tokenbd2 = await register(data.email, data.id);
+      setTokenbd(tokenbd2);
     } catch (error) {
       console.error("Error fetching user profile:", error);
     }
@@ -134,7 +141,6 @@ export const AuthProvider = ({ children }) => {
     if (useGenres) {
       const seedGenres = selectedGenres.join(",");
       recommendationsUrl = `https://api.spotify.com/v1/recommendations?limit=10&seed_genres=${seedGenres}`;
-      console.log("Usando géneros:", seedGenres);
     } else {
       // Seleccionar al azar numGenres artistas del array de 30 artistas
       const selectedArtists = user.artistIds
@@ -143,7 +149,6 @@ export const AuthProvider = ({ children }) => {
 
       const seedArtists = selectedArtists.join(",");
       recommendationsUrl = `https://api.spotify.com/v1/recommendations?limit=10&seed_artists=${seedArtists}`;
-      console.log("Usando artistas:", seedArtists);
     }
 
     // Fetch de recomendaciones
@@ -233,11 +238,17 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Función para hacer login
+  async function login(token) {
+    setTokenbd(token);
+  }
+
   // Cerrar sesión
   const logout = async () => {
     try {
       await AsyncStorage.removeItem("@access_token");
       setToken(null);
+      setTokenbd(null);
 
       navigation.reset({
         index: 0,
@@ -256,8 +267,10 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     token,
+    tokenbd,
     isLoggedIn: !!token,
     user,
+    login,
     promptAsync,
     logout,
     getRecommendations,
