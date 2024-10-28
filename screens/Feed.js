@@ -152,7 +152,7 @@ export default function Feed() {
       const filteredTracks = recommendedTracks.filter(
         (track) => track.preview_url
       );
-      console.log("Recomendaciones:", filteredTracks);
+      /* console.log("Recomendaciones:", filteredTracks); */
 
       // Agrega nuevas canciones a la lista actual
       setCanciones((prevCanciones) => [...prevCanciones, ...filteredTracks]);

@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -16,11 +16,24 @@ import { AuthContext } from "../context/AuthContext";
 import Entypo from "@expo/vector-icons/Entypo";
 
 export default function Playlist() {
-  const { token, user } = useContext(AuthContext);
+  const { token, user, getUserPlaylists } = useContext(AuthContext);
   const [playlists, setPlaylists] = useState([]);
   const [playlistName, setPlaylistName] = useState("");
   const [playlistDescription, setPlaylistDescription] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
+
+  useEffect(() => {
+    const loadPlaylists = async () => {
+      try {
+        const userPlaylists = await getUserPlaylists(token);
+        setPlaylists(userPlaylists);
+      } catch (error) {
+        console.error("Error al cargar las playlists:", error);
+      }
+    };
+
+    loadPlaylists();
+  }, [token]);
 
   const createPlaylist = async () => {
     if (!playlistName) {
@@ -133,6 +146,7 @@ export default function Playlist() {
           )}
           keyExtractor={(item) => item.id}
           style={{ width: "100%" }}
+          contentContainerStyle={{ paddingBottom: "30%" }}
         />
       </View>
     </LinearGradient>
