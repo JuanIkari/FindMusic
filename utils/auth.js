@@ -19,9 +19,8 @@ export async function register(email, password) {
   }
 }
 
-async function authenticate(mode, email, password) {
+/* async function authenticate(mode, email, password) {
   const url = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`;
-  console.log("URL", apiKey);
   try {
     const response = await axios.post(url, {
       email,
@@ -35,10 +34,11 @@ async function authenticate(mode, email, password) {
       console.log("Error in authentication 2");
     }
   } catch (error) {
-    console.log("Error in authentication", error);
+    console.log("error", error);
   }
 }
 
 export async function loginAuth(email, password) {
   return authenticate("login", email, password);
 }
+ */

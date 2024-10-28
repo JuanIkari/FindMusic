@@ -3,15 +3,15 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ResponseType, useAuthRequest } from "expo-auth-session";
 import { useNavigation } from "@react-navigation/native";
 import { ID, SECRET } from "@env";
-import { loginAuth, register } from "../utils/auth";
+import { register } from "../utils/auth";
 
 // Crear el contexto
 export const AuthContext = createContext({
   token: "",
-  tokenbd: "",
   isLoggedIn: false,
   user: {
     id: "",
+    tokenbd: "",
     name: "",
     profileImage: "",
     email: "",
@@ -27,9 +27,10 @@ export const AuthContext = createContext({
 
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
-  const [tokenbd, setTokenbd] = useState(null);
+  const [tokenBD, setTokenbd] = useState(null);
   const [user, setUser] = useState({
     id: "",
+    tokenbd: "",
     name: "",
     profileImage: "",
     email: "",
@@ -99,8 +100,12 @@ export const AuthProvider = ({ children }) => {
       const genres = data2.items.flatMap((artist) => artist.genres);
       const artistIds = data2.items.map((artist) => artist.id);
 
+      const tokenbd2 = await register(data.email, access_token);
+      setTokenbd(tokenbd2);
+
       setUser({
         id: data.id,
+        tokenbd: tokenBD,
         name: data.display_name,
         profileImage: data.images?.[0]?.url || "default_profile_image_url",
         email: data.email,
@@ -111,6 +116,7 @@ export const AuthProvider = ({ children }) => {
 
       storeUserData({
         id: data.id,
+        tokenbd: tokenBD,
         name: data.display_name,
         profileImage: data.images?.[0]?.url || "default_profile_image_url",
         email: data.email,
@@ -118,9 +124,6 @@ export const AuthProvider = ({ children }) => {
         artistIds: artistIds,
         genres: [...new Set(genres)],
       });
-
-      const tokenbd2 = await register(data.email, data.id);
-      setTokenbd(tokenbd2);
     } catch (error) {
       console.error("Error fetching user profile:", error);
     }
@@ -165,6 +168,7 @@ export const AuthProvider = ({ children }) => {
         return getRecommendations(); // Retry after delay
       }
       const recommendationsData = await response.json();
+      console.log("tokenbd", user.tokenbd);
       return recommendationsData.tracks;
     } catch (error) {
       console.error("Error fetching recommendations:", error);
@@ -267,7 +271,7 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     token,
-    tokenbd,
+    tokenBD,
     isLoggedIn: !!token,
     user,
     login,
