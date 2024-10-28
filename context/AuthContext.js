@@ -3,15 +3,15 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ResponseType, useAuthRequest } from "expo-auth-session";
 import { useNavigation } from "@react-navigation/native";
 import { ID, SECRET } from "@env";
-import { register } from "../utils/auth";
+import { loginAuth, register } from "../utils/auth";
 
 // Crear el contexto
 export const AuthContext = createContext({
   token: "",
+  tokenbd: "",
   isLoggedIn: false,
   user: {
     id: "",
-    tokenbd: "",
     name: "",
     profileImage: "",
     email: "",
@@ -30,7 +30,6 @@ export const AuthProvider = ({ children }) => {
   const [tokenBD, setTokenbd] = useState(null);
   const [user, setUser] = useState({
     id: "",
-    tokenbd: "",
     name: "",
     profileImage: "",
     email: "",
@@ -100,12 +99,8 @@ export const AuthProvider = ({ children }) => {
       const genres = data2.items.flatMap((artist) => artist.genres);
       const artistIds = data2.items.map((artist) => artist.id);
 
-      const tokenbd2 = await register(data.email, access_token);
-      setTokenbd(tokenbd2);
-
       setUser({
         id: data.id,
-        tokenbd: tokenBD,
         name: data.display_name,
         profileImage: data.images?.[0]?.url || "default_profile_image_url",
         email: data.email,
@@ -116,7 +111,6 @@ export const AuthProvider = ({ children }) => {
 
       storeUserData({
         id: data.id,
-        tokenbd: tokenBD,
         name: data.display_name,
         profileImage: data.images?.[0]?.url || "default_profile_image_url",
         email: data.email,
@@ -124,6 +118,7 @@ export const AuthProvider = ({ children }) => {
         artistIds: artistIds,
         genres: [...new Set(genres)],
       });
+      login(data.email, data.id);
     } catch (error) {
       console.error("Error fetching user profile:", error);
     }
@@ -198,6 +193,7 @@ export const AuthProvider = ({ children }) => {
       const savedUserData = await AsyncStorage.getItem("@user_data");
       if (savedUserData) {
         setUser(JSON.parse(savedUserData));
+        login(user.email, user.id);
       }
     } catch (e) {
       console.error("Error loading user data:", e);
@@ -214,6 +210,7 @@ export const AuthProvider = ({ children }) => {
         const isValid = await checkTokenValidity(savedToken);
         if (isValid) {
           await loadUserData();
+          login(user.email, user.id);
           navigation.navigate("Home"); // Redirigir a Home si el token es válido
         } else {
           await AsyncStorage.removeItem("@access_token");
@@ -243,8 +240,16 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Función para hacer login
-  async function login(token) {
-    setTokenbd(token);
+  async function login(email, password) {
+    if (!tokenBD) {
+      try {
+        const tokenBD = await register(email, password);
+        setTokenbd(tokenBD);
+        console.log("register TokenBD: ", tokenBD);
+      } catch (e) {
+        console.error("Error al hacer login:", e);
+      }
+    }
   }
 
   // Cerrar sesión
@@ -271,7 +276,7 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     token,
-    tokenBD,
+    tokenbd: tokenBD,
     isLoggedIn: !!token,
     user,
     login,
