@@ -133,15 +133,19 @@ export default function Feed() {
 
   // Función para obtener canciones de recomendaciones
   const fetchSongs = async () => {
+    if (isLoading) return; // Evita la función si ya está cargando
+
     setIsLoading(true); // Indica que se está cargando
+
     try {
       const recommendedTracks = await getRecommendations();
       const filteredTracks = recommendedTracks.filter(
         (track) => track.preview_url
       );
-      setCanciones((prevCanciones) => [...prevCanciones, ...filteredTracks]); // Agregar nuevas canciones
+
+      // Agrega nuevas canciones a la lista actual
+      setCanciones((prevCanciones) => [...prevCanciones, ...filteredTracks]);
     } catch (error) {
-      console.error("Error fetching recommendations", error);
     } finally {
       setIsLoading(false); // Indica que se terminó de cargar
     }
