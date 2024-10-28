@@ -146,6 +146,7 @@ export default function Feed() {
       // Agrega nuevas canciones a la lista actual
       setCanciones((prevCanciones) => [...prevCanciones, ...filteredTracks]);
     } catch (error) {
+      console.log("Error al obtener recomendaciones:", error);
     } finally {
       setIsLoading(false); // Indica que se terminó de cargar
     }

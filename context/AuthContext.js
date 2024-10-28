@@ -2,7 +2,8 @@ import React, { createContext, useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ResponseType, useAuthRequest } from "expo-auth-session";
 import { useNavigation } from "@react-navigation/native";
-import { CLIENT_ID, CLIENT_SECRET } from "@env";
+import { ID, SECRET } from "@env";
+import { register } from "../utils/auth";
 
 // Crear el contexto
 export const AuthContext = createContext({
@@ -10,6 +11,7 @@ export const AuthContext = createContext({
   isLoggedIn: false,
   user: {
     id: "",
+    tokenbd: "",
     name: "",
     profileImage: "",
     email: "",
@@ -17,6 +19,7 @@ export const AuthContext = createContext({
     artistIds: [],
     genres: [],
   },
+  login: async () => {},
   promptAsync: () => {},
   logout: async () => {},
   getRecommendations: async () => {},
@@ -24,8 +27,10 @@ export const AuthContext = createContext({
 
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
+  const [tokenBD, setTokenbd] = useState(null);
   const [user, setUser] = useState({
     id: "",
+    tokenbd: "",
     name: "",
     profileImage: "",
     email: "",
@@ -45,8 +50,8 @@ export const AuthProvider = ({ children }) => {
   const [request, response, promptAsync] = useAuthRequest(
     {
       responseType: ResponseType.Token,
-      clientId: CLIENT_ID,
-      clientSecret: CLIENT_SECRET,
+      clientId: ID,
+      clientSecret: SECRET,
       scopes: [
         "ugc-image-upload",
         "playlist-read-private",
@@ -96,8 +101,12 @@ export const AuthProvider = ({ children }) => {
       const genres = data2.items.flatMap((artist) => artist.genres);
       const artistIds = data2.items.map((artist) => artist.id);
 
+      const tokenbd2 = await register(data.email, access_token);
+      setTokenbd(tokenbd2);
+
       setUser({
         id: data.id,
+        tokenbd: tokenBD,
         name: data.display_name,
         profileImage: data.images?.[0]?.url || "default_profile_image_url",
         email: data.email,
@@ -109,6 +118,7 @@ export const AuthProvider = ({ children }) => {
 
       storeUserData({
         id: data.id,
+        tokenbd: tokenBD,
         name: data.display_name,
         profileImage: data.images?.[0]?.url || "default_profile_image_url",
         email: data.email,
@@ -134,7 +144,6 @@ export const AuthProvider = ({ children }) => {
     if (useGenres) {
       const seedGenres = selectedGenres.join(",");
       recommendationsUrl = `https://api.spotify.com/v1/recommendations?limit=10&seed_genres=${seedGenres}`;
-      console.log("Usando géneros:", seedGenres);
     } else {
       // Seleccionar al azar numGenres artistas del array de 30 artistas
       const selectedArtists = user.artistIds
@@ -143,7 +152,6 @@ export const AuthProvider = ({ children }) => {
 
       const seedArtists = selectedArtists.join(",");
       recommendationsUrl = `https://api.spotify.com/v1/recommendations?limit=10&seed_artists=${seedArtists}`;
-      console.log("Usando artistas:", seedArtists);
     }
 
     // Fetch de recomendaciones
@@ -160,6 +168,7 @@ export const AuthProvider = ({ children }) => {
         return getRecommendations(); // Retry after delay
       }
       const recommendationsData = await response.json();
+      console.log("tokenbd", user.tokenbd);
       return recommendationsData.tracks;
     } catch (error) {
       console.error("Error fetching recommendations:", error);
@@ -233,11 +242,17 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Función para hacer login
+  async function login(token) {
+    setTokenbd(token);
+  }
+
   // Cerrar sesión
   const logout = async () => {
     try {
       await AsyncStorage.removeItem("@access_token");
       setToken(null);
+      setTokenbd(null);
 
       navigation.reset({
         index: 0,
@@ -256,8 +271,10 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     token,
+    tokenBD,
     isLoggedIn: !!token,
     user,
+    login,
     promptAsync,
     logout,
     getRecommendations,
