@@ -1,8 +1,19 @@
 import React, { useContext, useState } from "react";
-import { View, Text, StyleSheet, FlatList, Image, Button, TextInput, Alert, Modal, Pressable } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Image,
+  Button,
+  TextInput,
+  Alert,
+  Modal,
+  Pressable,
+} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { AuthContext } from "../context/AuthContext";
-import Entypo from '@expo/vector-icons/Entypo';
+import Entypo from "@expo/vector-icons/Entypo";
 
 export default function Playlist() {
   const { token, user } = useContext(AuthContext);
@@ -13,33 +24,41 @@ export default function Playlist() {
 
   const createPlaylist = async () => {
     if (!playlistName) {
-      Alert.alert("Nombre Requerido", "Por favor, ingresa un nombre para la playlist.");
+      Alert.alert(
+        "Nombre Requerido",
+        "Por favor, ingresa un nombre para la playlist."
+      );
       return;
     }
 
     try {
-      const response = await fetch(`https://api.spotify.com/v1/users/${user.id}/playlists`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: playlistName,
-          description: playlistDescription,
-          public: false, // Cambia a true si quieres que sea pública
-        }),
-      });
+      const response = await fetch(
+        `https://api.spotify.com/v1/users/${user.id}/playlists`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: playlistName,
+            description: playlistDescription,
+            public: false, // Cambia a true si quieres que sea pública
+          }),
+        }
+      );
 
       const data = await response.json();
       console.log("Playlist creada:", data.id);
       if (data.id) {
         setPlaylists((prevPlaylists) => [...prevPlaylists, data]);
 
-        Alert.alert("Playlist creada", "Tu nueva playlist se ha creado exitosamente.");
+        Alert.alert(
+          "Playlist creada",
+          "Tu nueva playlist se ha creado exitosamente."
+        );
         setPlaylistName("");
         setPlaylistDescription("");
-        setImageUri(null);
         setModalVisible(false);
       }
     } catch (error) {
@@ -85,7 +104,11 @@ export default function Playlist() {
               />
 
               <View style={styles.modalButtons}>
-                <Button title="Cancelar" onPress={() => setModalVisible(false)} color="#f44" />
+                <Button
+                  title="Cancelar"
+                  onPress={() => setModalVisible(false)}
+                  color="#f44"
+                />
                 <Button title="Crear" onPress={createPlaylist} />
               </View>
             </View>
@@ -100,9 +123,11 @@ export default function Playlist() {
                 source={{ uri: item.images?.[0]?.url || "default_image_url" }}
                 style={styles.playlistImage}
               />
-              <View style={{flexDirection: "column"}}>
+              <View style={{ flexDirection: "column" }}>
                 <Text style={styles.playlistName}>{item.name}</Text>
-                <Text style={{color: "white", fontSize: 12}}>{item.description}</Text>
+                <Text style={{ color: "white", fontSize: 12 }}>
+                  {item.description}
+                </Text>
               </View>
             </View>
           )}
@@ -123,10 +148,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   playlist_header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '97%',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "97%",
     marginBottom: 60,
   },
   playlistTitle: {

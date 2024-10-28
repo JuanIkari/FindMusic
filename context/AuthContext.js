@@ -2,8 +2,9 @@ import React, { createContext, useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ResponseType, useAuthRequest } from "expo-auth-session";
 import { useNavigation } from "@react-navigation/native";
-import { ID, SECRET } from "@env";
+import { ID2, SECRET2 } from "@env";
 import { loginAuth, register } from "../utils/auth";
+import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 
 // Crear el contexto
 export const AuthContext = createContext({
@@ -23,6 +24,7 @@ export const AuthContext = createContext({
   promptAsync: () => {},
   logout: async () => {},
   getRecommendations: async () => {},
+  getUserPlaylists: async () => {},
 });
 
 export const AuthProvider = ({ children }) => {
@@ -36,7 +38,7 @@ export const AuthProvider = ({ children }) => {
     followers: 0,
     artistIds: [],
     genres: [],
-    product: ""
+    product: "",
   });
   const navigation = useNavigation();
 
@@ -49,8 +51,8 @@ export const AuthProvider = ({ children }) => {
   const [request, response, promptAsync] = useAuthRequest(
     {
       responseType: ResponseType.Token,
-      clientId: ID,
-      clientSecret: SECRET,
+      clientId: ID2,
+      clientSecret: SECRET2,
       scopes: [
         "ugc-image-upload",
         "playlist-read-private",
@@ -65,8 +67,8 @@ export const AuthProvider = ({ children }) => {
         "user-read-private",
       ],
       /* redirectUri: "exp://192.168.20.67:8081/" */ /* Diego */
-      redirectUri: "exp://192.168.101.18:8081/" /* Ales */
-      //redirectUri: "exp://192.168.0.12:8081/",
+      /* redirectUri: "exp://192.168.101.18:8081/" */ /* Ales */
+      redirectUri: "exp://192.168.0.12:8081/",
     },
     discovery
   );
@@ -108,7 +110,7 @@ export const AuthProvider = ({ children }) => {
         followers: data.followers.total,
         artistIds: artistIds,
         genres: [...new Set(genres)],
-        product : data.product
+        product: data.product,
       });
 
       storeUserData({
@@ -169,6 +171,22 @@ export const AuthProvider = ({ children }) => {
       console.error("Error fetching recommendations:", error);
       return [];
     }
+  };
+
+  // playlists
+  const getUserPlaylists = async (token) => {
+    const response = await fetch("https://api.spotify.com/v1/me/playlists", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) {
+      throw new Error("Error al obtener las playlists del usuario");
+    }
+
+    const data = await response.json();
+    return data.items; // Devuelve la lista de playlists
   };
 
   // Guardar el token en AsyncStorage
@@ -283,6 +301,7 @@ export const AuthProvider = ({ children }) => {
     promptAsync,
     logout,
     getRecommendations,
+    getUserPlaylists,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -1,4 +1,4 @@
-import * as React from "react";
+import React, { useContext, useState } from "react";
 import {
   View,
   Text,
@@ -6,18 +6,22 @@ import {
   StyleSheet,
   Dimensions,
   TouchableOpacity,
+  Modal,
+  Button,
+  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Image } from "expo-image";
 import { Audio } from "expo-av"; // Módulo de audio
 import Entypo from "@expo/vector-icons/Entypo";
 import { AuthContext } from "../context/AuthContext"; // Contexto
+import Playlist, { playlist } from "./Playlist"; // Función para obtener playlists
 
 const screenHeight = Dimensions.get("screen").height; // Constante para la altura de la pantalla
 let globalSound = null; // Variable global para manejar el sonido activo
 
 // Componente SongItem optimizado con React.memo para evitar renderizados innecesarios
-const SongItem = React.memo(({ item, isCurrentSong }) => {
+const SongItem = React.memo(({ item, isCurrentSong, onLikePress }) => {
   const [state, setState] = React.useState({
     liked: false,
     sound: null,
@@ -90,9 +94,10 @@ const SongItem = React.memo(({ item, isCurrentSong }) => {
       <View style={styles.iconContainer}>
         <TouchableOpacity
           style={styles.iconButton}
-          onPress={() =>
-            setState((prevState) => ({ ...prevState, liked: !liked }))
-          }
+          onPress={() => {
+            setState((prevState) => ({ ...prevState, liked: !liked }));
+            onLikePress(item); // Llamar la función para mostrar el modal
+          }}
         >
           <Entypo
             name={liked ? "heart" : "heart-outlined"}
@@ -122,10 +127,14 @@ const SongItem = React.memo(({ item, isCurrentSong }) => {
 });
 
 export default function Feed() {
-  const { getRecommendations } = React.useContext(AuthContext);
+  const { token, getRecommendations, getUserPlaylists } =
+    React.useContext(AuthContext);
   const [canciones, setCanciones] = React.useState([]);
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const [isLoading, setIsLoading] = React.useState(false); // Nuevo estado para el loading
+  const [playlists, setPlaylists] = useState([]);
+  const [selectedSong, setSelectedSong] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   React.useEffect(() => {
     fetchSongs(); // Cargar las canciones inicialmente
@@ -142,6 +151,7 @@ export default function Feed() {
       const filteredTracks = recommendedTracks.filter(
         (track) => track.preview_url
       );
+      /* console.log("Recomendaciones:", filteredTracks); */
 
       // Agrega nuevas canciones a la lista actual
       setCanciones((prevCanciones) => [...prevCanciones, ...filteredTracks]);
@@ -152,12 +162,52 @@ export default function Feed() {
     }
   };
 
+  const fetchPlaylists = async () => {
+    try {
+      const userPlaylists = await getUserPlaylists(token);
+      setPlaylists(userPlaylists);
+    } catch (error) {
+      console.log("Error al obtener playlists:", error);
+    }
+  };
+
+  const onLikePress = (song) => {
+    setSelectedSong(song);
+    fetchPlaylists();
+    setModalVisible(true);
+  };
+
+  const addToPlaylist = async (playlistId) => {
+    try {
+      await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ uris: [selectedSong.uri] }),
+      });
+      Alert.alert(
+        "Canción guardada",
+        "La canción se ha añadido a la playlist."
+      );
+      setModalVisible(false);
+    } catch (error) {
+      console.error("Error al añadir canción a la playlist:", error);
+      Alert.alert("Error", "No se pudo añadir la canción a la playlist.");
+    }
+  };
+
   return (
     <LinearGradient colors={["#0C0322", "#190633"]} style={{ flex: 1 }}>
       <FlatList
         data={canciones}
         renderItem={({ item, index }) => (
-          <SongItem item={item} isCurrentSong={index === currentIndex} />
+          <SongItem
+            item={item}
+            isCurrentSong={index === currentIndex}
+            onLikePress={onLikePress}
+          />
         )}
         keyExtractor={(item, index) => `${item.id}-${index}`}
         pagingEnabled
@@ -176,6 +226,36 @@ export default function Feed() {
         onEndReachedThreshold={0.5} // Umbral para disparar la carga de más canciones (0.5 significa cuando el usuario esté en la mitad de la pantalla antes del final)
         ListFooterComponent={isLoading ? <Text>Cargando...</Text> : null} // Mostrar un indicador de carga mientras se obtienen nuevas canciones
       />
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalTitle}>Selecciona una playlist</Text>
+            {playlists.length > 0 ? (
+              playlists.map((playlist) => (
+                <Button
+                  key={playlist.id}
+                  title={playlist.name}
+                  onPress={() => addToPlaylist(playlist.id)}
+                />
+              ))
+            ) : (
+              <Text style={{ color: "white" }}>
+                No tienes playlists disponibles.
+              </Text>
+            )}
+            <Button
+              title="Cancelar"
+              onPress={() => setModalVisible(false)}
+              color="#f44"
+            />
+          </View>
+        </View>
+      </Modal>
     </LinearGradient>
   );
 }
@@ -221,5 +301,24 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     padding: 7,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalView: {
+    width: 300,
+    backgroundColor: "#333",
+    borderRadius: 10,
+    padding: 20,
+    alignItems: "center",
+  },
+  modalTitle: {
+    fontSize: 24,
+    color: "#fff",
+    marginBottom: 15,
+    fontWeight: "bold",
   },
 });
