@@ -13,6 +13,7 @@ export const AuthContext = createContext({
     name: "",
     profileImage: "",
     email: "",
+    followers: 0,
   },
   promptAsync: () => {},
   logout: async () => {},
@@ -26,6 +27,7 @@ export const AuthProvider = ({ children }) => {
     name: "",
     profileImage: "",
     email: "",
+    followers: 0,
   });
   const [cachedGenres, setCachedGenres] = useState([]);
   const [cachedArtistIds, setCachedArtistIds] = useState([]);
@@ -43,17 +45,17 @@ export const AuthProvider = ({ children }) => {
       clientId: CLIENT_ID,
       clientSecret: CLIENT_SECRET,
       scopes: [
-        "ugc-image-upload", //imagenes
-        "playlist-read-private", //leer playlist privadas
-        "playlist-modify-private", //modificar playlist privadas
-        "playlist-modify-public", //modificar playlist publicas
-        "user-follow-modify", //!modificar seguidores
-        "user-follow-read", //leer seguidores
-        "user-top-read", //leer top (canciones y artistas) de usuario
-        "user-library-modify", //modificar biblioteca
-        "user-library-read", //leer biblioteca
-        "user-read-email", //leer email
-        "user-read-private", //leer información privada
+        "ugc-image-upload",
+        "playlist-read-private",
+        "playlist-modify-private",
+        "playlist-modify-public",
+        "user-follow-modify",
+        "user-follow-read",
+        "user-top-read",
+        "user-library-modify",
+        "user-library-read",
+        "user-read-email",
+        "user-read-private",
       ],
       /* redirectUri: "exp://192.168.20.67:8081/" */ /* Diego */
       /* redirectUri: "exp://192.168.101.18:8081/" */ /* Ales */
@@ -85,6 +87,15 @@ export const AuthProvider = ({ children }) => {
         name: data.display_name,
         profileImage: data.images?.[0]?.url || "default_profile_image_url",
         email: data.email,
+        followers: data.followers.total,
+      });
+
+      storeUserData({
+        id: data.id,
+        name: data.display_name,
+        profileImage: data.images?.[0]?.url || "default_profile_image_url",
+        email: data.email,
+        followers: data.followers.total,
       });
     } catch (error) {
       console.error("Error fetching user profile:", error);
@@ -104,61 +115,52 @@ export const AuthProvider = ({ children }) => {
   const loadToken = async () => {
     try {
       const savedToken = await AsyncStorage.getItem("@access_token");
-      if (savedToken) setToken(savedToken);
+      if (savedToken) {
+        setToken(savedToken);
+        // Verificar si el token es válido
+        const isValid = await checkTokenValidity(savedToken);
+        if (isValid) {
+          await loadUserData();
+          navigation.navigate("Home"); // Redirigir a Home si el token es válido
+        } else {
+          await AsyncStorage.removeItem("@access_token");
+          setToken(null); // Limpiar el estado del token si no es válido
+          navigation.navigate("Register"); // Redirigir a Register si el token no es válido
+        }
+      } else {
+        navigation.navigate("Register"); // Redirigir a Register si no hay token guardado
+      }
     } catch (e) {
       console.error("Error loading token:", e);
+      navigation.navigate("Register"); // Redirigir a Register en caso de error
     }
   };
 
-  // Obtener recomendaciones de Spotify
-  const fetchTopArtists = async (access_token) => {
+  // Función para verificar la validez del token
+  const checkTokenValidity = async (token) => {
     try {
-      const response = await fetch(
-        "https://api.spotify.com/v1/me/top/artists?limit=30",
-        {
-          headers: { Authorization: `Bearer ${access_token}` },
-        }
-      );
-      const data = await response.json();
-
-      const genres = data.items.flatMap((artist) => artist.genres);
-      const artistIds = data.items.map((artist) => artist.id);
-
-      setCachedGenres([...new Set(genres)]);
-      setCachedArtistIds(artistIds);
-    } catch (error) {
-      console.error("Error fetching top artists:", error);
-    }
-  };
-
-  const getRecommendations = async () => {
-    if (!token) return [];
-
-    const uniqueGenres = cachedGenres.map((genre) =>
-      genre.replace(/\s+/g, "+")
-    );
-    const numGenres = Math.floor(Math.random() * 5) + 1;
-    const selectedGenres = uniqueGenres
-      .sort(() => 0.5 - Math.random())
-      .slice(0, numGenres);
-
-    const useGenres = Math.random() < 0.5;
-    let recommendationsUrl;
-
-    if (useGenres) {
-      const seedGenres = selectedGenres.join(",");
-      recommendationsUrl = `https://api.spotify.com/v1/recommendations?limit=5&seed_genres=${seedGenres}`;
-    } else {
-      const seedArtists = cachedArtistIds.slice(0, numGenres).join(",");
-      recommendationsUrl = `https://api.spotify.com/v1/recommendations?limit=5&seed_artists=${seedArtists}`;
-    }
-
-    try {
-      const response = await fetch(recommendationsUrl, {
+      const res = await fetch("https://api.spotify.com/v1/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const recommendationsData = await response.json();
-      return recommendationsData.tracks;
+      return res.ok; // Retorna true si el token es válido
+    } catch (error) {
+      console.error("Error checking token validity:", error);
+      return false; // En caso de error, asumimos que no es válido
+    }
+  };
+
+  // Obtener recomendaciones
+  const getRecommendations = async () => {
+    console.log("Token:", token);
+    if (!token) return [];
+    try {
+      const url =
+        "https://api.spotify.com/v1/recommendations?limit=100&seed_genres=rock,punk";
+      const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+      return data.tracks;
     } catch (error) {
       console.error("Error fetching recommendations:", error);
       return [];
@@ -169,7 +171,6 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await AsyncStorage.removeItem("@access_token");
-
       setToken(null);
 
       navigation.reset({
