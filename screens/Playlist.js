@@ -10,10 +10,12 @@ import {
   Alert,
   Modal,
   Pressable,
+  TouchableOpacity,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { AuthContext } from "../context/AuthContext";
 import Entypo from "@expo/vector-icons/Entypo";
+import { useNavigation } from "@react-navigation/native";
 
 export default function Playlist() {
   const { token, user, getUserPlaylists } = useContext(AuthContext);
@@ -21,7 +23,8 @@ export default function Playlist() {
   const [playlistName, setPlaylistName] = useState("");
   const [playlistDescription, setPlaylistDescription] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
-
+  const navigation = useNavigation();
+  
   useEffect(() => {
     const loadPlaylists = async () => {
       try {
@@ -131,18 +134,22 @@ export default function Playlist() {
         <FlatList
           data={playlists}
           renderItem={({ item }) => (
-            <View style={styles.playlistItem}>
-              <Image
-                source={{ uri: item.images?.[0]?.url || "default_image_url" }}
-                style={styles.playlistImage}
-              />
-              <View style={{ flexDirection: "column" }}>
-                <Text style={styles.playlistName}>{item.name}</Text>
-                <Text style={{ color: "white", fontSize: 12 }}>
-                  {item.description}
-                </Text>
+            <TouchableOpacity 
+              onPress={() => navigation.navigate('PlaylistDetails', { playlistId: item.id })} 
+            >
+              <View style={styles.playlistItem}>
+                <Image
+                  source={{ uri: item.images?.[0]?.url || "default_image_url" }}
+                  style={styles.playlistImage}
+                />
+                <View style={{ flexDirection: "column" }}>
+                  <Text style={styles.playlistName}>{item.name}</Text>
+                  <Text style={{ color: "white", fontSize: 12 }}>
+                    {item.description}
+                  </Text>
+                </View>
               </View>
-            </View>
+            </TouchableOpacity>
           )}
           keyExtractor={(item) => item.id}
           style={{ width: "100%" }}
