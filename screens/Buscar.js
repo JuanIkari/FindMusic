@@ -17,6 +17,7 @@ const db = getFirestore(appFirebase);
 
 export default function Buscar() {
   const [lista, setLista] = React.useState([]);
+  const [searchText, setSearchText] = React.useState(""); // Estado para la búsqueda
 
   const getLista = async () => {
     try {
@@ -50,6 +51,11 @@ export default function Buscar() {
     getLista();
   }, []);
 
+  // Filtra la lista en función del texto de búsqueda
+  const filteredList = lista.filter((playlist) =>
+    playlist.playlistName.toLowerCase().includes(searchText.toLowerCase())
+  );
+
   return (
     <LinearGradient colors={["#0C0322", "#190633"]} style={{ flex: 1 }}>
       <View style={styles.container}>
@@ -62,7 +68,7 @@ export default function Buscar() {
         {/* Lista de playlists recomendadas */}
         <Text style={styles.playlistTitle}>Playlists Firebase</Text>
         <FlatList
-          data={lista}
+          data={filteredList} // Usamos la lista filtrada
           renderItem={({ item }) => (
             <View style={styles.playlistItem}>
               <Image
@@ -99,6 +105,8 @@ export default function Buscar() {
             placeholder="Buscar playlists..."
             placeholderTextColor="#888"
             style={{ fontSize: 16, color: "#fff" }}
+            value={searchText}
+            onChangeText={(text) => setSearchText(text)} // Actualizamos el texto de búsqueda
           />
         </View>
       </View>
