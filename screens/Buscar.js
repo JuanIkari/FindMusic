@@ -6,67 +6,84 @@ import {
   FlatList,
   StyleSheet,
   TextInput,
+  TouchableOpacity,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { appFirebase } from "../credenciales";
+import { getFirestore, collection, getDocs } from "firebase/firestore";
 
-const playlistsRecomendadas = [
-  {
-    id: 1,
-    name: "Love$ick",
-    image:
-      "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000d72c3c70523ed65d3372299f7d72",
-  },
-  {
-    id: 2,
-    name: "Top 50 Global",
-    image:
-      "https://charts-images.scdn.co/assets/locale_en/regional/daily/region_global_default.jpg",
-  },
-  {
-    id: 3,
-    name: "Frutiger aero",
-    image:
-      "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000d72c554072ba8c5c8f4ac8463be8",
-  },
-  {
-    id: 4,
-    name: "Brainrot",
-    image:
-      "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000d72cb24fb8d4060156509dfb56b8",
-  },
-  {
-    id: 5,
-    name: "HOT Playlist 🔥",
-    image:
-      "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da84d98141322ae596545d31dc54",
-  },
-  {
-    id: 6,
-    name: "Paranoia",
-    image:
-      "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000d72cda8b8a7cd99e4c999a627035",
-  },
-];
+const db = getFirestore(appFirebase);
 
 export default function Buscar() {
+  const [lista, setLista] = React.useState([]);
+
+  const getLista = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "playlists"));
+      const docs = [];
+      querySnapshot.forEach((doc) => {
+        const {
+          user,
+          userEmail,
+          playlistName,
+          playlistDescription,
+          tracks = [{ trackName: "", artistName: "", albumImage: "" }],
+        } = doc.data();
+        docs.push({
+          id: doc.id,
+          user,
+          userEmail,
+          playlistName,
+          playlistDescription,
+          tracks,
+        });
+      });
+      setLista(docs);
+    } catch (error) {
+      console.error("Error fetching playlist details:", error);
+    }
+  };
+
+  // Llama a getLista en el montaje del componente
+  React.useEffect(() => {
+    getLista();
+  }, []);
+
   return (
     <LinearGradient colors={["#0C0322", "#190633"]} style={{ flex: 1 }}>
       <View style={styles.container}>
+        {/* Botón de actualización */}
+        <TouchableOpacity style={styles.refreshButton} onPress={getLista}>
+          <Ionicons name="refresh" size={24} color="white" />
+          <Text style={styles.refreshButtonText}>Actualizar</Text>
+        </TouchableOpacity>
+
         {/* Lista de playlists recomendadas */}
-        <Text style={styles.playlistTitle}>Playlists Recomendadas</Text>
+        <Text style={styles.playlistTitle}>Playlists Firebase</Text>
         <FlatList
-          data={playlistsRecomendadas}
+          data={lista}
           renderItem={({ item }) => (
             <View style={styles.playlistItem}>
               <Image
-                source={{ uri: item.image }}
+                source={{
+                  uri:
+                    item.tracks?.[0]?.albumImage || "default_profile_image_url",
+                }}
                 style={styles.playlistImage}
               />
-              <Text style={styles.playlistName}>{item.name}</Text>
+              <View>
+                <Text style={styles.playlistName}>{item.playlistName}</Text>
+                {item.playlistDescription ? (
+                  <Text style={styles.playlistDescription}>
+                    {item.playlistDescription}
+                  </Text>
+                ) : null}
+                <Text style={styles.playlistUser}>Por: {item.user}</Text>
+              </View>
             </View>
           )}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item) => item.id}
           style={{ flex: 1, width: "100%" }}
         />
 
@@ -81,7 +98,7 @@ export default function Buscar() {
           <TextInput
             placeholder="Buscar playlists..."
             placeholderTextColor="#888"
-            style={{ fontSize: 16 }}
+            style={{ fontSize: 16, color: "#fff" }}
           />
         </View>
       </View>
@@ -102,11 +119,12 @@ const styles = StyleSheet.create({
     marginVertical: 40,
   },
   playlistItem: {
-    flexDirection: "row", // Alinea imagen y texto horizontalmente
+    flexDirection: "row",
     alignItems: "center",
     padding: 10,
     marginVertical: 5,
     borderRadius: 10,
+    backgroundColor: "#2E1B4B",
   },
   playlistImage: {
     width: 70,
@@ -117,10 +135,19 @@ const styles = StyleSheet.create({
   playlistName: {
     fontSize: 16,
     color: "#fff",
+    fontWeight: "bold",
+  },
+  playlistDescription: {
+    fontSize: 14,
+    color: "#ccc",
+  },
+  playlistUser: {
+    fontSize: 12,
+    color: "#aaa",
   },
   searchBarContainer: {
     position: "absolute",
-    bottom: 130, // Espacio para separarla del BottomTabNavigator
+    bottom: 130,
     left: 20,
     right: 20,
     flexDirection: "row",
@@ -129,5 +156,20 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 15,
     paddingVertical: 10,
+  },
+  refreshButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-end",
+    backgroundColor: "#1E0F47",
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    marginBottom: 20,
+  },
+  refreshButtonText: {
+    color: "white",
+    fontSize: 16,
+    marginLeft: 8,
   },
 });

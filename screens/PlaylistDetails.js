@@ -64,9 +64,10 @@ export default function PlaylistDetails({ route }) {
     try {
       // Crear el objeto con la información que quieres guardar
       const playlistData = {
+        user: user.name,
         userEmail: user.email, // Agregar el correo del usuario
         playlistName: playlist.name,
-        playlistDescription: playlist.description || "Sin descripción",
+        playlistDescription: playlist.description,
         tracks: tracks.map((item) => ({
           trackName: item.track.name,
           artistName: item.track.artists[0].name,
