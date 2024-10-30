@@ -18,6 +18,7 @@ import {
   addDoc,
   getDocs,
   doc,
+  setDoc,
   deleteDoc,
   getDoc,
   setDocto,
@@ -73,8 +74,11 @@ export default function PlaylistDetails({ route }) {
         })),
       };
 
-      // Agregar a Firestore
-      await addDoc(collection(db, "playlists"), playlistData);
+      // Crear la referencia a la playlist usando el playlistId como ID
+      const playlistRef = doc(db, "playlists", playlistId);
+
+      // Guardar la playlist en Firestore con el ID especificado
+      await setDoc(playlistRef, playlistData);
 
       Alert.alert(
         "Playlist publicada",

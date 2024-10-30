@@ -7,7 +7,6 @@ import { getAnalytics } from "firebase/analytics";
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyD5aYs0Ys0iy2n8MnmYpCB-fmwCGux2DMs",
   authDomain: "findmusic-60740.firebaseapp.com",
   projectId: "findmusic-60740",
   storageBucket: "findmusic-60740.appspot.com",

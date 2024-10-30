@@ -16,7 +16,11 @@ import { Image } from "expo-image";
 import { Audio } from "expo-av"; // Módulo de audio
 import Entypo from "@expo/vector-icons/Entypo";
 import { AuthContext } from "../context/AuthContext"; // Contexto
+import { appFirebase } from "../credenciales";
+import { doc, getDoc, updateDoc, getFirestore } from "firebase/firestore";
 import Playlist, { playlist } from "./Playlist"; // Función para obtener playlists
+
+const db = getFirestore(appFirebase);
 
 const screenHeight = Dimensions.get("screen").height; // Constante para la altura de la pantalla
 let globalSound = null; // Variable global para manejar el sonido activo
@@ -178,8 +182,39 @@ export default function Feed() {
     setModalVisible(true);
   };
 
+  const addSongToPlaylistInFirebase = async (playlistId, song) => {
+    const playlistRef = doc(db, "playlists", playlistId);
+
+    try {
+      // Obtener la playlist de Firestore
+      const playlistSnapshot = await getDoc(playlistRef);
+
+      if (playlistSnapshot.exists()) {
+        // Si la playlist ya existe, actualiza los tracks
+        const playlistData = playlistSnapshot.data();
+        const updatedTracks = [
+          ...playlistData.tracks,
+          {
+            trackName: song.name,
+            artistName: song.artists[0].name,
+            albumImage: song.album.images[0].url,
+          },
+        ];
+
+        // Actualiza la playlist en Firestore
+        await updateDoc(playlistRef, { tracks: updatedTracks });
+        console.log("Playlist actualizada en Firebase");
+      } else {
+        console.log("La playlist no existe en Firebase");
+      }
+    } catch (error) {
+      console.error("Error al actualizar la playlist en Firebase:", error);
+    }
+  };
+
   const addToPlaylist = async (playlistId) => {
     try {
+      await addSongToPlaylistInFirebase(playlistId, selectedSong);
       await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
         method: "POST",
         headers: {
@@ -233,7 +268,12 @@ export default function Feed() {
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <ScrollView contentContainerStyle={{ alignItems: 'center', justifyContent: 'center' }}>
+        <ScrollView
+          contentContainerStyle={{
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
           <View style={styles.modalView}>
             <Text style={styles.modalTitle}>Selecciona una playlist</Text>
             {playlists.length > 0 ? (
@@ -244,7 +284,11 @@ export default function Feed() {
                   onPress={() => addToPlaylist(playlist.id)}
                 >
                   <Image
-                    source={{ uri: playlist.images?.[0]?.url || "default_profile_image_url"}}
+                    source={{
+                      uri:
+                        playlist.images?.[0]?.url ||
+                        "default_profile_image_url",
+                    }}
                     style={styles.playlistImage}
                   />
                   <Text style={styles.playlistName}>{playlist.name}</Text>
@@ -263,7 +307,6 @@ export default function Feed() {
           </View>
         </ScrollView>
       </Modal>
-
     </LinearGradient>
   );
 }
@@ -311,26 +354,26 @@ const styles = StyleSheet.create({
     padding: 7,
   },
   modalView: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     padding: 20,
     borderRadius: 10,
-    alignItems: 'center',
-    width: '80%',
+    alignItems: "center",
+    width: "80%",
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 10,
-    textAlign: 'center',
+    textAlign: "center",
   },
   playlistItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 10,
-    backgroundColor: '#333',
+    backgroundColor: "#333",
     borderRadius: 8,
     marginBottom: 8,
-    width: '100%',
+    width: "100%",
   },
   playlistImage: {
     width: 50,
@@ -339,8 +382,8 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   playlistName: {
-    color: 'white',
+    color: "white",
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
   },
 });

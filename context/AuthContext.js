@@ -67,8 +67,8 @@ export const AuthProvider = ({ children }) => {
         "user-read-private",
       ],
       /* redirectUri: "exp://192.168.20.67:8081/" */ /* Diego */
-      redirectUri: "exp://192.168.101.18:8081/" /* Ales */
-      //redirectUri: "exp://192.168.0.12:8081/",
+      /* redirectUri: "exp://192.168.101.18:8081/" */ /* Ales */
+      redirectUri: "exp://192.168.0.12:8081/",
     },
     discovery
   );
@@ -182,18 +182,18 @@ export const AuthProvider = ({ children }) => {
           Authorization: `Bearer ${token}`,
         },
       });
-  
+
       if (!response.ok) {
         throw new Error("Error al obtener las playlists del usuario");
       }
-  
+
       const data = await response.json();
-  
+
       // Filtrar playlists en las que el usuario autenticado es el dueño
       const userPlaylists = data.items.filter(
         (playlist) => playlist.owner.id === user.id
       );
-  
+
       return userPlaylists; // Devuelve solo las playlists del usuario
     } catch (error) {
       console.error("Error fetching user playlists:", error);
