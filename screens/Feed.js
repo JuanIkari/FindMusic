@@ -244,7 +244,7 @@ export default function Feed() {
                   onPress={() => addToPlaylist(playlist.id)}
                 >
                   <Image
-                    source={{ uri: playlist.images[0].url }}
+                    source={{ uri: playlist.images?.[0]?.url || "default_profile_image_url"}}
                     style={styles.playlistImage}
                   />
                   <Text style={styles.playlistName}>{playlist.name}</Text>
