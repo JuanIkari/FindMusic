@@ -3,11 +3,12 @@ import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
+import { API_KEY } from "@env";
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyD5aYs0Ys0iy2n8MnmYpCB-fmwCGux2DMs",
+  apiKey: API_KEY,
   authDomain: "findmusic-60740.firebaseapp.com",
   projectId: "findmusic-60740",
   storageBucket: "findmusic-60740.appspot.com",
