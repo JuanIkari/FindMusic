@@ -162,7 +162,7 @@ export default function PlaylistDetails({ route }) {
       Alert.alert("Canción eliminada", "La canción ha sido eliminada de la playlist.");
 
       // Actualiza la lista de canciones
-      await fetchPlaylistDetails();
+      fetchPlaylistDetails();
 
     } catch (error) {
       console.error("Error al eliminar canción de la playlist:", error);
