@@ -148,7 +148,8 @@ export default function Buscar() {
             </TouchableOpacity>
           )}
           keyExtractor={(item) => item.id}
-          style={{ flex: 1, width: "100%" }}
+          style={{ width: "100%" }}
+          contentContainerStyle={{ paddingBottom: "50%" }}
         />
 
         {/* Barra de búsqueda */}

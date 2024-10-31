@@ -29,7 +29,7 @@ export async function register(email, password) {
       // Retornamos el token de sesión
       return loginResponse.data.idToken;
     } catch (loginError) {
-      console.error("Error en autenticación o registro:", loginError);
+      console.log("Error en autenticación o registro:", loginError);
       throw new Error("No se pudo autenticar o registrar al usuario.");
     }
   }

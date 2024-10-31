@@ -67,8 +67,8 @@ export const AuthProvider = ({ children }) => {
         "user-read-private",
       ],
       /* redirectUri: "exp://192.168.20.67:8081/" */ /* Diego */
-      /* redirectUri: "exp://192.168.101.18:8081/" */ /* Ales */
-      redirectUri: "exp://192.168.0.12:8081/",
+      redirectUri: "exp://192.168.101.18:8081/" /* Ales */
+      //redirectUri: "exp://192.168.0.12:8081/",
     },
     discovery
   );
@@ -277,7 +277,7 @@ export const AuthProvider = ({ children }) => {
         setTokenbd(tokenBD);
         console.log("register TokenBD: ", tokenBD);
       } catch (e) {
-        console.error("Error al hacer login:", e);
+        console.log("Error al hacer login:", e);
       }
     }
   }
