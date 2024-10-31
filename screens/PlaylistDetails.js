@@ -68,7 +68,9 @@ export default function PlaylistDetails({ route }) {
         userEmail: user.email, // Agregar el correo del usuario
         playlistName: playlist.name,
         playlistDescription: playlist.description,
+        playlistImage: playlist.images[0].url,
         tracks: tracks.map((item) => ({
+          trackId: item.track.id,
           trackName: item.track.name,
           artistName: item.track.artists[0].name,
           albumImage: item.track.album.images[0].url,

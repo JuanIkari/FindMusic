@@ -9,17 +9,26 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { useNavigation } from "@react-navigation/native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { appFirebase } from "../credenciales";
-import { getFirestore, collection, getDocs } from "firebase/firestore";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
 
 const db = getFirestore(appFirebase);
 
 export default function Buscar() {
   const [lista, setLista] = React.useState([]);
   const [searchText, setSearchText] = React.useState(""); // Estado para la búsqueda
+  const navigation = useNavigation();
 
-  const getLista = async () => {
+  // Función para obtener playlists
+  const getPlaylists = async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "playlists"));
       const docs = [];
@@ -29,6 +38,7 @@ export default function Buscar() {
           userEmail,
           playlistName,
           playlistDescription,
+          playlistImage,
           tracks = [{ trackName: "", artistName: "", albumImage: "" }],
         } = doc.data();
         docs.push({
@@ -37,6 +47,7 @@ export default function Buscar() {
           userEmail,
           playlistName,
           playlistDescription,
+          playlistImage,
           tracks,
         });
       });
@@ -46,35 +57,82 @@ export default function Buscar() {
     }
   };
 
-  // Llama a getLista en el montaje del componente
+  // Función para buscar playlists según el texto de búsqueda
+  const searchPlaylists = async (queryText) => {
+    if (!queryText) {
+      getPlaylists(); // Si no hay texto, obtiene todas las playlists
+      return;
+    }
+
+    try {
+      const q = query(
+        collection(db, "playlists"),
+        where("playlistName", ">=", queryText),
+        where("playlistName", "<=", queryText + "\uf8ff") // Para incluir resultados que comienzan con el query
+      );
+
+      const querySnapshot = await getDocs(q);
+      const docs = [];
+      querySnapshot.forEach((doc) => {
+        const {
+          user,
+          userEmail,
+          playlistName,
+          playlistDescription,
+          playlistImage,
+          tracks,
+        } = doc.data();
+        docs.push({
+          id: doc.id,
+          user,
+          userEmail,
+          playlistName,
+          playlistDescription,
+          playlistImage,
+          tracks,
+        });
+      });
+      setLista(docs);
+    } catch (error) {
+      console.error("Error fetching playlists:", error);
+    }
+  };
+
+  // Llama a getPlaylists en el montaje del componente
   React.useEffect(() => {
-    getLista();
+    getPlaylists();
   }, []);
 
-  // Filtra la lista en función del texto de búsqueda
-  const filteredList = lista.filter((playlist) =>
-    playlist.playlistName.toLowerCase().includes(searchText.toLowerCase())
-  );
+  // Llama a searchPlaylists cada vez que cambia el texto de búsqueda
+  React.useEffect(() => {
+    searchPlaylists(searchText);
+  }, [searchText]);
 
   return (
     <LinearGradient colors={["#0C0322", "#190633"]} style={{ flex: 1 }}>
       <View style={styles.container}>
         {/* Botón de actualización */}
-        <TouchableOpacity style={styles.refreshButton} onPress={getLista}>
+        <TouchableOpacity style={styles.refreshButton} onPress={getPlaylists}>
           <Ionicons name="refresh" size={24} color="white" />
           <Text style={styles.refreshButtonText}>Actualizar</Text>
         </TouchableOpacity>
 
-        {/* Lista de playlists recomendadas */}
-        <Text style={styles.playlistTitle}>Playlists Firebase</Text>
+        {/* Lista de playlists */}
+        <Text style={styles.playlistTitle}>Playlists y Resultados</Text>
         <FlatList
-          data={filteredList} // Usamos la lista filtrada
+          data={lista} // Usamos la lista de playlists
           renderItem={({ item }) => (
-            <View style={styles.playlistItem}>
+            <TouchableOpacity
+              style={styles.playlistItem}
+              onPress={() =>
+                navigation.navigate("PlaylistDetails", {
+                  playlistId: item.id,
+                })
+              }
+            >
               <Image
                 source={{
-                  uri:
-                    item.tracks?.[0]?.albumImage || "default_profile_image_url",
+                  uri: item.playlistImage || "default_profile_image_url",
                 }}
                 style={styles.playlistImage}
               />
@@ -87,7 +145,7 @@ export default function Buscar() {
                 ) : null}
                 <Text style={styles.playlistUser}>Por: {item.user}</Text>
               </View>
-            </View>
+            </TouchableOpacity>
           )}
           keyExtractor={(item) => item.id}
           style={{ flex: 1, width: "100%" }}
@@ -106,7 +164,7 @@ export default function Buscar() {
             placeholderTextColor="#888"
             style={{ fontSize: 16, color: "#fff" }}
             value={searchText}
-            onChangeText={(text) => setSearchText(text)} // Actualizamos el texto de búsqueda
+            onChangeText={setSearchText} // Actualizamos el texto de búsqueda
           />
         </View>
       </View>
