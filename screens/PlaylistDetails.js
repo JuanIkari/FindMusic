@@ -39,25 +39,25 @@ export default function PlaylistDetails({ route }) {
   const [playlist, setPlaylist] = useState(null);
   const [tracks, setTracks] = useState([]);
 
-  useEffect(() => {
-    const fetchPlaylistDetails = async () => {
-      try {
-        const response = await fetch(
-          `https://api.spotify.com/v1/playlists/${playlistId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        const data = await response.json();
-        setPlaylist(data);
-        setTracks(data.tracks.items); // Obtener canciones de la playlist
-      } catch (error) {
-        console.error("Error fetching playlist details:", error);
-      }
-    };
+  const fetchPlaylistDetails = async () => {
+    try {
+      const response = await fetch(
+        `https://api.spotify.com/v1/playlists/${playlistId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const data = await response.json();
+      setPlaylist(data);
+      setTracks(data.tracks.items); // Obtener canciones de la playlist
+    } catch (error) {
+      console.error("Error fetching playlist details:", error);
+    }
+  };
 
+  useEffect(() => {
     fetchPlaylistDetails();
   }, [playlistId, token]);
 
@@ -156,10 +156,14 @@ export default function PlaylistDetails({ route }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          tracks: [{ uri: trackUri }] 
+          tracks: [{ uri: trackUri }]
         }),
       });
       Alert.alert("Canción eliminada", "La canción ha sido eliminada de la playlist.");
+
+      // Actualiza la lista de canciones
+      await fetchPlaylistDetails();
+
     } catch (error) {
       console.error("Error al eliminar canción de la playlist:", error);
       Alert.alert("Error", "No se pudo eliminar la canción de la playlist.");
@@ -195,29 +199,29 @@ export default function PlaylistDetails({ route }) {
           </View>
 
           <FlatList
-  data={tracks}
-  keyExtractor={(item) => item.track.id}
-  renderItem={({ item }) => (
-    <View style={styles.track_item}>
-      <View style={{ flexDirection: "row", alignItems: "center" }}>
-        <Image
-          source={{ uri: item.track.album.images[0].url }}
-          style={styles.track_image}
-        />
-        <View>
-          <Text style={styles.track_name}>{item.track.name}</Text>
-          <Text style={styles.track_artist}>{item.track.artists[0].name}</Text>
-        </View>
-      </View>
-      <TouchableOpacity
-        style={styles.delete_button}
-        onPress={() => deleteFromPlaylist(playlistId, item.track.uri, item.track.id)}
-      >
-        <Ionicons name="trash" size={24} color="red" />
-      </TouchableOpacity>
-    </View>
-  )}
-/>
+            data={tracks}
+            keyExtractor={(item) => item.track.id}
+            renderItem={({ item }) => (
+              <View style={styles.track_item}>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <Image
+                    source={{ uri: item.track.album.images[0].url }}
+                    style={styles.track_image}
+                  />
+                  <View>
+                    <Text style={styles.track_name}>{item.track.name}</Text>
+                    <Text style={styles.track_artist}>{item.track.artists[0].name}</Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  style={styles.delete_button}
+                  onPress={() => deleteFromPlaylist(playlistId, item.track.uri, item.track.id)}
+                >
+                  <Ionicons name="trash" size={24} color="red" />
+                </TouchableOpacity>
+              </View>
+            )}
+          />
         </>
       )}
     </View>
