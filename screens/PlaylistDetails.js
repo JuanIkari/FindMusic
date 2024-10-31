@@ -21,6 +21,7 @@ import {
   setDoc,
   deleteDoc,
   getDoc,
+  updateDoc,
   setDocto,
   query,
   where,
@@ -123,6 +124,48 @@ export default function PlaylistDetails({ route }) {
     }
   };
 
+  const removeSongFromPlaylistInFirebase = async (playlistId, trackId) => {
+    const playlistRef = doc(db, "playlists", playlistId);
+
+    try {
+      const playlistSnapshot = await getDoc(playlistRef);
+
+      if (playlistSnapshot.exists()) {
+        const playlistData = playlistSnapshot.data();
+        const updatedTracks = playlistData.tracks.filter(
+          (track) => track.trackId !== trackId
+        );
+
+        await updateDoc(playlistRef, { tracks: updatedTracks });
+        console.log("Canción eliminada de Firebase");
+      } else {
+        console.log("La playlist no existe en Firebase");
+      }
+    } catch (error) {
+      console.error("Error al eliminar la canción en Firebase:", error);
+    }
+  };
+
+  const deleteFromPlaylist = async (playlistId, trackUri, trackId) => {
+    try {
+      await removeSongFromPlaylistInFirebase(playlistId, trackId);
+      await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          tracks: [{ uri: trackUri }] 
+        }),
+      });
+      Alert.alert("Canción eliminada", "La canción ha sido eliminada de la playlist.");
+    } catch (error) {
+      console.error("Error al eliminar canción de la playlist:", error);
+      Alert.alert("Error", "No se pudo eliminar la canción de la playlist.");
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.buttons_container}>
@@ -152,23 +195,29 @@ export default function PlaylistDetails({ route }) {
           </View>
 
           <FlatList
-            data={tracks}
-            keyExtractor={(item) => item.track.id}
-            renderItem={({ item }) => (
-              <View style={styles.track_item}>
-                <Image
-                  source={{ uri: item.track.album.images[0].url }}
-                  style={styles.track_image}
-                />
-                <View>
-                  <Text style={styles.track_name}>{item.track.name}</Text>
-                  <Text style={styles.track_artist}>
-                    {item.track.artists[0].name}
-                  </Text>
-                </View>
-              </View>
-            )}
-          />
+  data={tracks}
+  keyExtractor={(item) => item.track.id}
+  renderItem={({ item }) => (
+    <View style={styles.track_item}>
+      <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <Image
+          source={{ uri: item.track.album.images[0].url }}
+          style={styles.track_image}
+        />
+        <View>
+          <Text style={styles.track_name}>{item.track.name}</Text>
+          <Text style={styles.track_artist}>{item.track.artists[0].name}</Text>
+        </View>
+      </View>
+      <TouchableOpacity
+        style={styles.delete_button}
+        onPress={() => deleteFromPlaylist(playlistId, item.track.uri, item.track.id)}
+      >
+        <Ionicons name="trash" size={24} color="red" />
+      </TouchableOpacity>
+    </View>
+  )}
+/>
         </>
       )}
     </View>
@@ -212,21 +261,31 @@ const styles = StyleSheet.create({
   },
   track_item: {
     flexDirection: "row",
-    marginBottom: 20,
     alignItems: "center",
+    justifyContent: "space-between", // Esto empuja el botón de eliminar hacia el borde derecho
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    marginVertical: 5,
+    borderRadius: 10,
   },
   track_image: {
     width: 50,
     height: 50,
-    borderRadius: 8,
-    marginRight: 10,
+    borderRadius: 5,
+    marginRight: 15,
   },
   track_name: {
     fontSize: 16,
-    color: "#fff",
+    fontWeight: "bold",
+    color: "#FFFFFF",
   },
   track_artist: {
     fontSize: 14,
-    color: "#ccc",
+    color: "#CCCCCC",
+  },
+  delete_button: {
+    position: "absolute",
+    right: 15,
+    padding: 10,
   },
 });
