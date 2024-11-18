@@ -1,6 +1,5 @@
 import axios from "axios";
 import { TOKEN } from "@env";
-import { Alert } from "react-native";
 import { getFirestore, doc, setDoc } from "firebase/firestore";
 import { appFirebase } from "../credenciales";
 
@@ -84,15 +83,7 @@ async function saveUserData(userData) {
     // Guardar los datos del usuario en Firestore por ID
     await setDoc(userRef, userData);
 
-    Alert.alert(
-      "Usuario guardado",
-      "Los datos del usuario se han guardado correctamente"
-    );
   } catch (error) {
-    console.error("Error al guardar los datos del usuario:", error);
-    Alert.alert(
-      "Error",
-      "No se guardaron los datos del usuario."
-    );
+    
   }
 }
