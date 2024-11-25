@@ -2,7 +2,7 @@ import React, { createContext, useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ResponseType, useAuthRequest } from "expo-auth-session";
 import { useNavigation } from "@react-navigation/native";
-import { ID2, SECRET2 } from "@env";
+import { ID, SECRET } from "@env";
 import { loginAuth, register } from "../utils/auth";
 import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
 
@@ -51,8 +51,8 @@ export const AuthProvider = ({ children }) => {
   const [request, response, promptAsync] = useAuthRequest(
     {
       responseType: ResponseType.Token,
-      clientId: ID2,
-      clientSecret: SECRET2,
+      clientId: ID,
+      clientSecret: SECRET,
       scopes: [
         "ugc-image-upload",
         "playlist-read-private",

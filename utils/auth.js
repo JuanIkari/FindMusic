@@ -6,7 +6,8 @@ import { appFirebase } from "../credenciales";
 const apiKey = TOKEN;
 const db = getFirestore(appFirebase);
 
-export async function register(email, password) {
+// Función principal de registro/autenticación
+export async function register(email, password, spotifyToken) {
   const registerUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`;
   const loginUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`;
   const spotifyProfileUrl = "https://api.spotify.com/v1/me";
@@ -19,28 +20,15 @@ export async function register(email, password) {
       returnSecureToken: true,
     });
 
-    // Obtener el token de acceso de Spotify
-    const spotifyToken = response.data.idToken;
+    const userId = response.data.localId; // UID único del usuario
 
-    // Obtener los detalles del usuario de Spotify
-    const spotifyResponse = await axios.get(spotifyProfileUrl, {
-      headers: {
-        Authorization: `Bearer ${spotifyToken}`,
-      },
-    });
- 
-    const userData = {
-      id: response.data.localId,
-      nombre: spotifyResponse.data.display_name, 
-      email: email,
-      friends: [],
-    };
-    await saveUserData(userData);
+    // Automáticamente registra al usuario en Firestore
+    await registerUser(userId, email);
 
-    // Retornamos el token
+    console.log("Registro y almacenamiento exitoso");
     return response.data.idToken;
   } catch (error) {
-    // Si hay un error, asumimos que el usuario ya está registrado e intentamos iniciar sesión
+    // Si hay error en el registro, intenta login
     try {
       const loginResponse = await axios.post(loginUrl, {
         email,
@@ -48,42 +36,33 @@ export async function register(email, password) {
         returnSecureToken: true,
       });
 
-      // Obtener el token de acceso de Spotify
-      const spotifyToken = loginResponse.data.idToken;
+      const userId = loginResponse.data.localId;
 
-      // Obtener los detalles del usuario de Spotify
-      const spotifyResponse = await axios.get(spotifyProfileUrl, {
-        headers: {
-          Authorization: `Bearer ${spotifyToken}`,
-        },
-      });
+      // Automáticamente asegura que el usuario está en Firestore
+      await registerUser(userId, email);
 
-      const userData = {
-        id: loginResponse.data.localId,
-        nombre: spotifyResponse.data.display_name,
-        email: email,
-        friends: [],
-      };
-      await saveUserData(userData);
-
-      // Retornamos el token de sesión
+      console.log("Login exitoso y datos asegurados en Firestore");
       return loginResponse.data.idToken;
     } catch (loginError) {
-      console.log("Error en autenticación o registro:", loginError);
+      console.error("Error durante login o registro:", loginError);
       throw new Error("No se pudo autenticar o registrar al usuario.");
     }
-  }
-}
-
-async function saveUserData(userData) {
-  try {
-    //  referencia al usuario usando el userId como ID
-    const userRef = doc(db, "users", userData.id);
-
-    // Guardar los datos del usuario en Firestore por ID
-    await setDoc(userRef, userData);
-
-  } catch (error) {
     
   }
 }
+
+// Función para guardar datos en Firestore autaomáticamente
+const registerUser = async (id, email) => {
+  try {
+    const userRef = doc(db, "usuarios", id); // El UID como identificador único
+    await setDoc(userRef, {
+      id,
+      email,
+      friends: [], // Lista vacía inicial
+      name: email.split("@")[0], // Por defecto toma el nombre del email antes del '@'
+    });
+    console.log("Usuario almacenado en Firestore");
+  } catch (error) {
+    console.error("Error al guardar datos del usuario en Firestore:", error);
+  }
+};
