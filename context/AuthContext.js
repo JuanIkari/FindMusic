@@ -3,8 +3,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ResponseType, useAuthRequest } from "expo-auth-session";
 import { useNavigation } from "@react-navigation/native";
 import { ID2, SECRET2 } from "@env";
-import { loginAuth, register } from "../utils/auth";
+import { register } from "../utils/auth";
 import recommendations from "../utils/JSON/canciones.json";
+import { getFirestore, collection, query, where, getDocs } from "firebase/firestore";
+import { appFirebase } from "../credenciales";
+
+const db = getFirestore(appFirebase);
+
 
 // Crear el contexto
 export const AuthContext = createContext({
@@ -217,6 +222,25 @@ export const AuthProvider = ({ children }) => {
     }
   }; */
 
+  /* const getRecommendations = async () => {
+    if (!token) return [];
+
+    try {
+      const response = await fetch("https://api.spotify.com/v1/me/tracks", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+      });
+
+      const recommendationsData = await response.json();
+      const filteredData = recommendationsData.items.map((item) => item.track);
+      return filteredData;
+    } catch (error) {
+      console.error("Error fetching songs: ", error);
+      return [];
+    }
+  } */
+
   const getRecommendations = async () => {
     if (!token) return [];
 
@@ -229,7 +253,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   // playlists
-  const getUserPlaylists = async (token) => {
+  /* const getUserPlaylists = async (token) => {
     try {
       const response = await fetch("https://api.spotify.com/v1/me/playlists", {
         method: "GET",
@@ -243,16 +267,35 @@ export const AuthProvider = ({ children }) => {
       }
 
       const data = await response.json();
-      console.log("Playlists data: ", data);
 
       // Filtrar playlists en las que el usuario autenticado es el dueño
-      const userPlaylists = data.items.filter(
-        (playlist) => playlist.owner.id === user.id
-      );
+      const userPlaylists = data.items
+        .filter((playlist) => playlist !== null)
+        .filter(
+          (playlist) => playlist.owner.id === user.id
+        );
 
       return userPlaylists; // Devuelve solo las playlists del usuario
     } catch (error) {
       console.error("Error fetching user playlists:", error);
+      return [];
+    }
+  }; */
+
+  const getUserPlaylists = async (userEmail) => {
+    try {
+      const playlistsRef = collection(db, "playlists");
+      const q = query(playlistsRef, where("userEmail", "==", userEmail));
+      const querySnapshot = await getDocs(q);
+  
+      const userPlaylists = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+  
+      return userPlaylists;
+    } catch (error) {
+      console.error("Error fetching playlists from Firebase:", error);
       return [];
     }
   };

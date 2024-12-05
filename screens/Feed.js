@@ -18,7 +18,6 @@ import Entypo from "@expo/vector-icons/Entypo";
 import { AuthContext } from "../context/AuthContext"; // Contexto
 import { appFirebase } from "../credenciales";
 import { doc, getDoc, updateDoc, getFirestore } from "firebase/firestore";
-import Playlist, { playlist } from "./Playlist"; // Función para obtener playlists
 
 const db = getFirestore(appFirebase);
 
@@ -132,7 +131,7 @@ const SongItem = React.memo(({ item, isCurrentSong, onLikePress }) => {
 });
 
 export default function Feed() {
-  const { token, getRecommendations, getUserPlaylists } =
+  const { token, getRecommendations, getUserPlaylists, user } =
     React.useContext(AuthContext);
   const [canciones, setCanciones] = React.useState([]);
   const [currentIndex, setCurrentIndex] = React.useState(0);
@@ -156,7 +155,6 @@ export default function Feed() {
       const filteredTracks = recommendedTracks.filter(
         (track) => track.preview_url
       );
-      /* console.log("Recomendaciones:", filteredTracks); */
 
       // Agrega nuevas canciones a la lista actual
       setCanciones((prevCanciones) => [...prevCanciones, ...filteredTracks]);
@@ -169,10 +167,10 @@ export default function Feed() {
 
   const fetchPlaylists = async () => {
     try {
-      const userPlaylists = await getUserPlaylists(token);
+      const userPlaylists = await getUserPlaylists(user.email);
       setPlaylists(userPlaylists);
     } catch (error) {
-      console.log("Error al obtener playlists:", error);
+      console.log("Error al obtener playlists en modal:", error);
     }
   };
 
@@ -286,12 +284,12 @@ export default function Feed() {
                   <Image
                     source={{
                       uri:
-                        playlist.images?.[0]?.url ||
+                        playlist.playlistImage ||
                         "default_profile_image_url",
                     }}
                     style={styles.playlistImage}
                   />
-                  <Text style={styles.playlistName}>{playlist.name}</Text>
+                  <Text style={styles.playlistName}>{playlist.playlistName}</Text>
                 </TouchableOpacity>
               ))
             ) : (

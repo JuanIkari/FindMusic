@@ -28,7 +28,8 @@ export default function Playlist() {
   useEffect(() => {
     const loadPlaylists = async () => {
       try {
-        const userPlaylists = await getUserPlaylists(token);
+        const userPlaylists = await getUserPlaylists(user.email);
+        //const userPlaylists = await getUserPlaylists();
         setPlaylists(userPlaylists);
       } catch (error) {
         console.error("Error al cargar las playlists:", error);
@@ -131,7 +132,7 @@ export default function Playlist() {
           </View>
         </Modal>
 
-        <FlatList
+        {/* <FlatList
           data={playlists}
           renderItem={({ item }) => (
             <TouchableOpacity 
@@ -146,6 +147,30 @@ export default function Playlist() {
                   <Text style={styles.playlistName}>{item.name}</Text>
                   <Text style={{ color: "white", fontSize: 12 }}>
                     {item.description}
+                  </Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          )}
+          keyExtractor={(item) => item.id}
+          style={{ width: "100%" }}
+          contentContainerStyle={{ paddingBottom: "30%" }}
+        /> */}
+        <FlatList
+          data={playlists}
+          renderItem={({ item }) => (
+            <TouchableOpacity 
+              onPress={() => navigation.navigate('PlaylistDetails', { playlistId: item.id })} 
+            >
+              <View style={styles.playlistItem}>
+                <Image
+                  source={{ uri: item.playlistImage || "default_image_url" }}
+                  style={styles.playlistImage}
+                />
+                <View style={{ flexDirection: "column" }}>
+                  <Text style={styles.playlistName}>{item.playlistName}</Text>
+                  <Text style={{ color: "white", fontSize: 12 }}>
+                    {item.playlistDescription}
                   </Text>
                 </View>
               </View>
