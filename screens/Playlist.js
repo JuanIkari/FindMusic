@@ -16,6 +16,10 @@ import { LinearGradient } from "expo-linear-gradient";
 import { AuthContext } from "../context/AuthContext";
 import Entypo from "@expo/vector-icons/Entypo";
 import { useNavigation } from "@react-navigation/native";
+import { appFirebase } from "../credenciales";
+import { getFirestore, addDoc, collection } from "firebase/firestore";
+
+const db = getFirestore(appFirebase);
 
 export default function Playlist() {
   const { token, user, getUserPlaylists } = useContext(AuthContext);
@@ -24,7 +28,7 @@ export default function Playlist() {
   const [playlistDescription, setPlaylistDescription] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const navigation = useNavigation();
-  
+
   useEffect(() => {
     const loadPlaylists = async () => {
       try {
@@ -39,7 +43,7 @@ export default function Playlist() {
     loadPlaylists();
   }, [token]);
 
-  const createPlaylist = async () => {
+  /* const createPlaylist = async () => {
     if (!playlistName) {
       Alert.alert(
         "Nombre Requerido",
@@ -78,6 +82,52 @@ export default function Playlist() {
         setPlaylistDescription("");
         setModalVisible(false);
       }
+    } catch (error) {
+      console.error("Error creando la playlist:", error);
+      Alert.alert("Error", "No se pudo crear la playlist.");
+    }
+  }; */
+
+  const createPlaylist = async () => {
+    if (!playlistName) {
+      Alert.alert(
+        "Nombre Requerido",
+        "Por favor, ingresa un nombre para la playlist."
+      );
+      return;
+    }
+
+    try {
+      // Estructura del nuevo documento de la playlist
+      const newPlaylist = {
+        playlistDescription,
+        playlistImage: "", // Puedes agregar una imagen por defecto si lo deseas
+        playlistName,
+        tracks: [], // Inicia con una lista vacía de canciones
+        user: user.name, // Asegúrate de que `user` tiene los datos necesarios
+        userEmail: user.email,
+      };
+      // Añadir la playlist a la colección "playlists" en Firebase
+      const docRef = await addDoc(collection(db, "playlists"), newPlaylist);
+
+      console.log("Playlist creada con ID:", docRef.id);
+
+      // Actualizar el estado local con la nueva playlist
+      setPlaylists((prevPlaylists) => [
+        ...prevPlaylists,
+        { ...newPlaylist, id: docRef.id }, // Incluye el ID generado por Firebase
+      ]);
+
+      // Mostrar una alerta de éxito
+      Alert.alert(
+        "Playlist creada",
+        "Tu nueva playlist se ha creado exitosamente."
+      );
+
+      // Reiniciar los campos del formulario
+      setPlaylistName("");
+      setPlaylistDescription("");
+      setModalVisible(false);
     } catch (error) {
       console.error("Error creando la playlist:", error);
       Alert.alert("Error", "No se pudo crear la playlist.");
@@ -159,8 +209,8 @@ export default function Playlist() {
         <FlatList
           data={playlists}
           renderItem={({ item }) => (
-            <TouchableOpacity 
-              onPress={() => navigation.navigate('PlaylistDetails', { playlistId: item.id })} 
+            <TouchableOpacity
+              onPress={() => navigation.navigate('PlaylistDetails', { playlistId: item.id })}
             >
               <View style={styles.playlistItem}>
                 <Image

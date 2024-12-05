@@ -39,7 +39,7 @@ export default function PlaylistDetails({ route }) {
   const [playlist, setPlaylist] = useState(null);
   const [tracks, setTracks] = useState([]);
 
-  const fetchPlaylistDetails = async () => {
+  /* const fetchPlaylistDetails = async () => {
     try {
       const response = await fetch(
         `https://api.spotify.com/v1/playlists/${playlistId}`,
@@ -55,13 +55,34 @@ export default function PlaylistDetails({ route }) {
     } catch (error) {
       console.error("Error fetching playlist details:", error);
     }
+  }; */
+
+  const fetchPlaylistDetails = async () => {
+    try {
+      // Obtener la referencia al documento de la playlist en Firebase
+      const playlistRef = doc(db, "playlists", playlistId);
+
+      // Obtener los datos del documento
+      const playlistSnapshot = await getDoc(playlistRef);
+
+      if (playlistSnapshot.exists()) {
+        const playlistData = playlistSnapshot.data();
+        setPlaylist(playlistData); // Guardar detalles de la playlist
+        setTracks(playlistData.tracks || []); // Obtener las canciones o un arreglo vacío si no hay canciones
+      } else {
+        console.error("La playlist no existe en Firebase.");
+        Alert.alert("Error", "No se encontraron detalles de la playlist.");
+      }
+    } catch (error) {
+      console.error("Error fetching playlist details:", error);
+    };
   };
 
   useEffect(() => {
     fetchPlaylistDetails();
   }, [playlistId, token]);
 
-  const publishPlaylist = async () => {
+  /* const publishPlaylist = async () => {
     try {
       // Crear el objeto con la información que quieres guardar
       const playlistData = {
@@ -95,7 +116,7 @@ export default function PlaylistDetails({ route }) {
         "Hubo un problema al publicar la playlist. Inténtalo de nuevo."
       );
     }
-  };
+  }; */
 
   const deletePlaylist = async () => {
     try {
@@ -146,7 +167,20 @@ export default function PlaylistDetails({ route }) {
     }
   };
 
-  const deleteFromPlaylist = async (playlistId, trackUri, trackId) => {
+  const deleteFromPlaylist = async (playlistId, trackId) => {
+    try {
+      await removeSongFromPlaylistInFirebase(playlistId, trackId);
+      Alert.alert("Canción eliminada", "La canción ha sido eliminada de la playlist.");
+
+      // Actualiza la lista de canciones
+      fetchPlaylistDetails();
+    } catch (error) {
+      console.error("Error al eliminar canción de la playlist:", error);
+      Alert.alert("Error", "No se pudo eliminar la canción de la playlist.");
+    };
+  };
+
+  /* const deleteFromPlaylist = async (playlistId, trackUri, trackId) => {
     try {
       await removeSongFromPlaylistInFirebase(playlistId, trackId);
       await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
@@ -168,7 +202,7 @@ export default function PlaylistDetails({ route }) {
       console.error("Error al eliminar canción de la playlist:", error);
       Alert.alert("Error", "No se pudo eliminar la canción de la playlist.");
     }
-  };
+  }; */
 
   return (
     <View style={styles.container}>
@@ -176,14 +210,55 @@ export default function PlaylistDetails({ route }) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={24} color="white" />
         </TouchableOpacity>
-        <TouchableOpacity onPress={publishPlaylist}>
+        {/* <TouchableOpacity onPress={publishPlaylist}>
           <MaterialIcons name="publish" size={24} color="white" />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <TouchableOpacity onPress={deletePlaylist}>
           <MaterialIcons name="delete" size={24} color="white" />
         </TouchableOpacity>
       </View>
       {playlist && (
+        <>
+          <View style={styles.playlist_info}>
+            <Image
+              source={{ uri: playlist.playlistImage || "default_image_url" }}
+              style={styles.playlist_image}
+            />
+            <View style={styles.playlist_text}>
+              <Text style={styles.playlist_title}>{playlist.playlistName}</Text>
+              <Text style={styles.playlist_description}>
+                {playlist.playlistDescription}
+              </Text>
+            </View>
+          </View>
+
+          <FlatList
+            data={tracks}
+            keyExtractor={(item, index) => index.toString()} // Firebase no tiene un ID único por track
+            renderItem={({ item }) => (
+              <View style={styles.track_item}>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <Image
+                    source={{ uri: item.albumImage || "default_image_url" }}
+                    style={styles.track_image}
+                  />
+                  <View>
+                    <Text style={styles.track_name}>{item.trackName}</Text>
+                    <Text style={styles.track_artist}>{item.artistName}</Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  style={styles.delete_button}
+                  onPress={() => deleteFromPlaylist(playlistId, item.trackId)}
+                >
+                  <Ionicons name="trash" size={24} color="red" />
+                </TouchableOpacity>
+              </View>
+            )}
+          />
+        </>
+      )}
+      {/* {playlist && (
         <>
           <View style={styles.playlist_info}>
             <Image
@@ -223,7 +298,7 @@ export default function PlaylistDetails({ route }) {
             )}
           />
         </>
-      )}
+      )} */}
     </View>
   );
 }

@@ -12,12 +12,7 @@ import { AuthContext } from "../context/AuthContext";
 
 export default function Perfil({ navigation }) {
   const { logout, user } = useContext(AuthContext);
-  const [showProduct, setShowProduct] = useState(false); // Estado para controlar la visibilidad del tipo de cuenta
-
-  // Asegúrate de que el nombre y la imagen se actualicen al cambiar el contexto
-  useEffect(() => {
-    // Aquí podrías agregar lógica adicional si es necesario
-  }, [user]);
+  const [showProduct, setShowProduct] = useState(false);
 
   return (
     <LinearGradient colors={["#0C0322", "#190633"]} style={{ flex: 1 }}>

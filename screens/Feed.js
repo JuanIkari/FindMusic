@@ -193,6 +193,7 @@ export default function Feed() {
         const updatedTracks = [
           ...playlistData.tracks,
           {
+            trackId: song.id,
             trackName: song.name,
             artistName: song.artists[0].name,
             albumImage: song.album.images[0].url,
@@ -210,7 +211,7 @@ export default function Feed() {
     }
   };
 
-  const addToPlaylist = async (playlistId) => {
+  /* const addToPlaylist = async (playlistId) => {
     try {
       await addSongToPlaylistInFirebase(playlistId, selectedSong);
       await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
@@ -230,6 +231,20 @@ export default function Feed() {
       console.error("Error al añadir canción a la playlist:", error);
       Alert.alert("Error", "No se pudo añadir la canción a la playlist.");
     }
+  }; */
+
+  const addToPlaylist = async (playlistId) => {
+    try {
+      await addSongToPlaylistInFirebase(playlistId, selectedSong);
+      Alert.alert(
+        "Canción guardada",
+        "La canción se ha añadido a la playlist."
+      );
+      setModalVisible(false);
+    } catch (error) {
+      console.error("Error al añadir canción a la playlist:", error);
+      Alert.alert("Error", "No se pudo añadir la canción a la playlist.");
+    };
   };
 
   return (
