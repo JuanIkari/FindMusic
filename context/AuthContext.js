@@ -2,16 +2,16 @@ import React, { createContext, useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ResponseType, useAuthRequest } from "expo-auth-session";
 import { useNavigation } from "@react-navigation/native";
-import { ID, SECRET } from "@env";
+import { ID2, SECRET2 } from "@env";
 import { loginAuth, register } from "../utils/auth";
-import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
+import recommendations from "../utils/JSON/canciones.json";
 
 // Crear el contexto
 export const AuthContext = createContext({
   token: "",
   tokenbd: "",
   isLoggedIn: false,
-  user: {
+  /* user: {
     id: "",
     name: "",
     profileImage: "",
@@ -19,6 +19,13 @@ export const AuthContext = createContext({
     followers: 0,
     artistIds: [],
     genres: [],
+  }, */
+  user: {
+    id: "",
+    name: "",
+    profileImage: "",
+    email: "",
+    followers: 0,
   },
   login: async () => {},
   promptAsync: () => {},
@@ -30,7 +37,7 @@ export const AuthContext = createContext({
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [tokenBD, setTokenbd] = useState(null);
-  const [user, setUser] = useState({
+  /* const [user, setUser] = useState({
     id: "",
     name: "",
     profileImage: "",
@@ -38,6 +45,14 @@ export const AuthProvider = ({ children }) => {
     followers: 0,
     artistIds: [],
     genres: [],
+    product: "",
+  }); */
+  const [user, setUser] = useState({
+    id: "",
+    name: "",
+    profileImage: "",
+    email: "",
+    followers: 0,
     product: "",
   });
   const navigation = useNavigation();
@@ -51,8 +66,8 @@ export const AuthProvider = ({ children }) => {
   const [request, response, promptAsync] = useAuthRequest(
     {
       responseType: ResponseType.Token,
-      clientId: ID,
-      clientSecret: SECRET,
+      clientId: ID2,
+      clientSecret: SECRET2,
       scopes: [
         "ugc-image-upload",
         "playlist-read-private",
@@ -66,8 +81,8 @@ export const AuthProvider = ({ children }) => {
         "user-read-email",
         "user-read-private",
       ],
-       redirectUri: "exp://192.168.20.67:8081/"  /* Diego */
-      /*redirectUri: "exp://192.168.101.18:8081/" /* Ales */
+      //redirectUri: "exp://192.168.20.67:8081/"  /* Diego */
+      redirectUri: "exp://192.168.101.18:8081/" /* Ales */
       //redirectUri: "exp://192.168.0.12:8081/",
     },
     discovery
@@ -84,7 +99,7 @@ export const AuthProvider = ({ children }) => {
     }
   }, [response]);
 
-  const fetchUserProfile = async (access_token) => {
+  /* const fetchUserProfile = async (access_token) => {
     try {
       const res = await fetch("https://api.spotify.com/v1/me", {
         headers: { Authorization: `Bearer ${access_token}` },
@@ -124,9 +139,38 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error("Error fetching user profile:", error);
     }
-  };
+  }; */
+  const fetchUserProfile = async (access_token) => {
+    try {
+      const res = await fetch("https://api.spotify.com/v1/me", {
+        headers: { Authorization: `Bearer ${access_token}` },
+      });
 
-  const getRecommendations = async () => {
+      const data = await res.json();
+
+      setUser({
+        id: data.id,
+        name: data.display_name,
+        profileImage: data.images?.[0]?.url || "default_profile_image_url",
+        email: data.email,
+        followers: data.followers.total,
+        product: data.product,
+      });
+
+      storeUserData({
+        id: data.id,
+        name: data.display_name,
+        profileImage: data.images?.[0]?.url || "default_profile_image_url",
+        email: data.email,
+        followers: data.followers.total,
+      });
+
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+    }
+  }
+
+  /* const getRecommendations = async () => {
     if (!token) return [];
 
     const uniqueGenres = user.genres.map((genre) => genre.replace(/\s+/g, "+"));
@@ -171,6 +215,17 @@ export const AuthProvider = ({ children }) => {
       console.error("Error fetching recommendations:", error);
       return [];
     }
+  }; */
+
+  const getRecommendations = async () => {
+    if (!token) return [];
+
+    try {
+      return recommendations.tracks;
+    } catch (error) {
+      console.error("Error fetching recommendations from JSON:", error);
+      return [];
+    }
   };
 
   // playlists
@@ -188,6 +243,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       const data = await response.json();
+      console.log("Playlists data: ", data);
 
       // Filtrar playlists en las que el usuario autenticado es el dueño
       const userPlaylists = data.items.filter(

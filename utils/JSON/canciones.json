@@ -1,0 +1,84 @@
+{
+  "tracks":[
+    {
+      "name": "Rhinestone Eyes",
+      "preview_url": "https://ia601905.us.archive.org/28/items/plastic-beach/04%20Rhinestone%20Eyes.mp3",
+      "album": {
+        "images": [
+          {
+            "url": "https://cdn-images.dzcdn.net/images/cover/4ddf15e6d4fa3cf61fdc8271cdec4815/0x1900-000000-80-0-0.jpg"
+          }
+        ]
+      },
+      "artists": [
+        {
+          "name": "Gorillaz"
+        }
+      ]
+    },
+    {
+      "name": "All The Small Things",
+      "preview_url": "https://ia904707.us.archive.org/26/items/enema-of-the-state-thumbnail/08-Track%208.MP3",
+      "album": {
+        "images": [
+          {
+            "url": "https://cdn-images.dzcdn.net/images/cover/c25db71db5267c6919391c5f6d8b0d37/0x1900-000000-80-0-0.jpg"
+          }
+        ]
+      },
+      "artists": [
+        {
+          "name": "Blink-182"
+        }
+      ]
+    },
+    {
+      "name": "GOD",
+      "preview_url": "https://ia803402.us.archive.org/1/items/12-fear/DAMN%2F13%20GOD.mp3",
+      "album": {
+        "images": [
+          {
+            "url": "https://cdn-images.dzcdn.net/images/cover/7ce6b8452fae425557067db6e6a1cad5/0x1900-000000-80-0-0.jpg"
+          }
+        ]
+      },
+      "artists": [
+        {
+          "name": "Kendrick Lamar"
+        }
+      ]
+    },
+    {
+      "name": "Tainted Love",
+      "preview_url": "https://ia801502.us.archive.org/0/items/soft-cell-10-say-hello-wave-goodbye/Soft%20Cell%20-%2002%20%20Tainted%20Love.mp3",
+      "album": {
+        "images": [
+          {
+            "url": "https://cdn-images.dzcdn.net/images/cover/02ced6cba063ee68c2a3669f2187cc5b/0x1900-000000-80-0-0.jpg"
+          }
+        ]
+      },
+      "artists": [
+        {
+          "name": "Soft Cell"
+        }
+      ]
+    },
+    {
+      "name": "Tear In My Heart",
+      "preview_url": "https://ia800304.us.archive.org/34/items/Twenty-One-Pilots-BLURRY-FACE/05%20Tear%20In%20My%20Heart.m4a",
+      "album": {
+        "images": [
+          {
+            "url": "https://cdn-images.dzcdn.net/images/cover/dbbde1014cda9b101412a8e27add0ad2/0x1900-000000-80-0-0.jpg"
+          }
+        ]
+      },
+      "artists": [
+        {
+          "name": "Twenty One Pilots"
+        }
+      ]
+    }
+  ]
+}
